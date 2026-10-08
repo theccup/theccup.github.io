@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Cunt Cup</title>
+<meta name="theme-color" content="#DDE2E8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cunt Cup">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+img{max-width:100%}[hidden]{display:none!important}
+.pin input[type=email],.pin input[type=password]{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font:inherit;width:100%}
+</style>
+<style id="app-style">
+/* Layout: stadium scoreboard — condensed display numerals, team-colour stripes, standings first, events second, archive as a roll of honour */
+:root{
+  /* Fog: cool blue-grey ground, soft grey cards (no white), navy ink, brass details. Single light look on purpose. */
+  --bg:#DDE2E8; --surface:#EAEEF2; --surface-2:#D3D9E0; --ink:#16213A; --muted:#5B6678; --line:#C5CDD7;
+  --accent:#16213A; --accent-ink:#EAEEF2; --gold:#B58B2E; --silver:#8E98A6; --bronze:#A0653A;
+  --good:#1E7F4E; --warn:#B07316; --danger:#B83A2E;
+  --f-display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",Impact,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:10px; color-scheme:light;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+#app{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:20px 120px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.hero{position:relative;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding-block:8px 18px;border-bottom:3px solid var(--ink);padding-right:48px}
+.cog{position:absolute;top:4px;right:0;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.cog:hover{color:var(--ink);border-color:var(--ink)}
+.cog.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.cog-menu{position:absolute;top:50px;right:0;z-index:15;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.cog-menu .lbl{margin:0}
+.cog-menu .btn{justify-content:center}
+.hero.compact .cog{top:50%;transform:translateY(-50%)}
+.hero.compact .cog-menu{top:calc(50% + 28px)}
+.hero-main{min-width:0}
+.eyebrow{margin:0;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{margin:2px 0 0;font-family:var(--f-display);font-weight:900;font-size:clamp(46px,11vw,92px);line-height:.88;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+.acro{margin:8px 0 0;font-size:14px;color:var(--muted)}
+.acro b{color:var(--ink);font-weight:700}
+.motto{margin:10px 0 0;display:inline-block;font-family:var(--f-display);font-weight:800;font-size:17px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);padding-block:3px}
+.motto span{font-family:var(--f-body);font-weight:500;font-size:12px;letter-spacing:.04em;text-transform:none;color:var(--muted)}
+.hero-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.status{font-size:13px;color:var(--muted);text-align:right}
+.status strong{color:var(--ink)}
+@media (max-width:600px){.hero-side{align-items:flex-start;width:100%}.status{text-align:left}}
+
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:var(--danger);background:transparent}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:default}
+
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:4px;background:var(--bg);padding-block:12px;margin-bottom:6px;overflow-x:auto}
+.tab{border:0;background:transparent;padding:8px 14px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted);letter-spacing:.02em;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+
+h2{font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:.02em;text-transform:uppercase;margin:0 0 10px;line-height:1}
+h3{font-size:17px;margin:0;font-weight:700}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sec-note{font-size:13px;color:var(--muted);margin:0 0 10px}
+.grid2{display:grid;gap:28px}
+@media (min-width:860px){.grid2{grid-template-columns:5fr 6fr}}
+.grid2>*{min-width:0}
+section{margin-top:18px}
+
+.teams{display:flex;flex-direction:column;gap:10px}
+.team{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--tc);border-radius:var(--r);padding:12px 14px 12px 10px}
+.team .rk{font-family:var(--f-display);font-weight:900;font-size:40px;line-height:1;text-align:center}
+.team.lead .rk{color:var(--gold)}
+.team-name{font-weight:700;font-size:17px;line-height:1.2}
+.team-members{font-size:12.5px;color:var(--muted);margin-top:2px}
+.bar{height:6px;background:var(--surface-2);border-radius:3px;margin-top:8px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--tc);border-radius:3px}
+.pts{text-align:right}
+.pts b{display:block;font-family:var(--f-display);font-weight:800;font-size:38px;line-height:1}
+.pts small{font-size:12px;color:var(--muted)}
+
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+td.c,th.c{text-align:center}
+.rkc{font-family:var(--f-display);font-weight:800;font-size:20px;width:42px;white-space:nowrap}
+.pl-name{font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--tc);flex:none;border:1px solid rgba(0,0,0,.15)}
+.medals{display:inline-flex;gap:6px;white-space:nowrap}
+.medal{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:11px;font-size:12px;font-weight:700;color:#111;font-variant-numeric:tabular-nums}
+.medal.g{background:var(--gold)} .medal.s{background:var(--silver)} .medal.b{background:var(--bronze);color:#fff}
+.bigpts{font-family:var(--f-display);font-weight:800;font-size:22px}
+.dash{color:var(--muted)}
+
+.events{display:grid;gap:12px}
+@media (min-width:640px){.events{grid-template-columns:1fr 1fr}}
+.ev{display:flex;flex-direction:column;gap:10px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+button.ev:hover{border-color:var(--ink)}
+.ev-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ev-no{font-family:var(--f-display);font-weight:900;font-size:30px;line-height:1;color:var(--muted);min-width:30px}
+.ev-name{font-weight:700;font-size:18px;flex:1;min-width:0}
+.pill{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 8px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;align-self:flex-start}
+.pill.done{background:var(--good);border-color:var(--good);color:#fff}
+.pill.next{background:var(--warn);border-color:var(--warn);color:#111}
+.podium{display:flex;flex-direction:column;gap:4px;font-size:14px}
+.podium div{display:flex;align-items:center;gap:8px}
+.empty{font-size:14px;color:var(--muted)}
+
+.detail-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
+.detail-head h2{margin:0;flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.detail-head .dir{flex:none}
+@media (max-width:600px){.detail-head h2{flex-basis:100%}}
+.edit-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px;align-items:center}
+.tapnote{font-size:13px;color:var(--muted)}
+.add-ev{margin-bottom:12px}
+.card .add-ev{margin-bottom:0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+select.place{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 6px;font-variant-numeric:tabular-nums}
+tr.tappable{cursor:pointer}
+tr.tappable:hover td{background:var(--surface-2)}
+
+/* Archive */
+.year-btn{border:0;background:transparent;padding:0;font-family:var(--f-display);font-weight:900;font-size:30px;line-height:1;color:var(--ink);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;text-decoration-color:var(--line)}
+.year-btn:hover{text-decoration-color:var(--ink)}
+.honour td{vertical-align:top;padding-block:12px}
+.honour .who{font-size:12.5px;color:var(--muted);margin-top:2px}
+.live-tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);display:block;margin-top:4px}
+.rec-list{display:flex;flex-direction:column;gap:5px;font-size:14px;margin:0;padding:0;list-style:none}
+.rec-list li{display:flex;gap:10px;align-items:baseline}
+.rec-list .yr{font-family:var(--f-display);font-weight:800;font-size:17px;min-width:42px;color:var(--muted)}
+.rec-best{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.rec-best b{color:var(--ink)}
+.sortbar{display:flex;gap:4px;flex-wrap:wrap}
+.sortbar .tab{font-size:13px;padding:5px 10px}
+
+.setup{display:flex;flex-direction:column;gap:26px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row>input[type=text],.row>.grow{flex:1;min-width:140px}
+input[type=text],input[type=password]{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;min-width:0}
+input[type=color]{width:40px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:2px}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--ink);color:var(--bg);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.savebar-in{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.savebar-in .msg{flex:1;min-width:160px;font-size:14px;font-weight:600}
+.savebar .btn{background:transparent;color:var(--bg);border-color:var(--muted)}
+.savebar .btn.primary{background:var(--bg);color:var(--ink);border-color:var(--bg)}
+
+.pin{background:var(--surface);border:2px solid var(--ink);border-radius:var(--r);padding:16px;margin-top:16px;display:flex;flex-direction:column;gap:10px;max-width:420px}
+.pin .err{color:var(--danger);font-size:13px;margin:0}
+.notice{background:var(--surface-2);border-radius:var(--r);padding:10px 12px;font-size:13.5px;margin-top:12px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--accent);color:var(--accent-ink);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;max-width:calc(100% - 32px);text-align:center}
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.bar>i{transition:width .5s ease}}
+input.score{width:90px;text-align:right;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 8px;font-variant-numeric:tabular-nums}
+.dir{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.dir button{border:0;background:transparent;padding:5px 12px;font-size:13px;font-weight:600;color:var(--muted)}
+.dir button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.rec-new{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--gold);color:#111;border-radius:999px;padding:2px 7px;vertical-align:middle}
+.rec-by{font-size:12.5px;color:var(--muted)}
+.rec-name{font-weight:700}
+h3.sub{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.mp-set{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;font-size:14px}
+.mp-set input{width:52px;text-align:center;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px}
+.matches{display:flex;flex-direction:column;gap:8px}
+.m-round{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.match{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.match.pending{border-style:dashed}
+.m-row{display:grid;grid-template-columns:1fr auto auto auto 1fr;align-items:center;gap:8px}
+.match.ro .m-row{grid-template-columns:1fr auto 1fr}
+.m-team{min-width:0;overflow:hidden}
+.m-team.r{text-align:right;justify-self:end}
+.m-team.won .chip{font-weight:800}
+.m-v{color:var(--muted);font-size:13px;text-align:center}
+.m-score{font-family:var(--f-display);font-weight:800;font-size:20px;text-align:center;white-space:nowrap}
+.m-out{font-size:13px;color:var(--muted);text-align:center}
+.m-res{align-self:center;max-width:100%}
+.m-res button{white-space:nowrap}
+input.score.ms{width:54px}
+@media (max-width:600px){
+  body{font-size:14px}
+  h1{font-size:clamp(38px,11vw,56px)}
+  h2{font-size:23px}
+  .acro{font-size:12.5px}
+  .motto{font-size:14px}
+  .motto span{font-size:11px}
+  .status{font-size:12px}
+  .team{grid-template-columns:34px 1fr auto;padding:10px 12px 10px 8px;gap:10px}
+  .team .rk{font-size:30px}
+  .team-name{font-size:15px}
+  .team-members{font-size:11.5px}
+  .pts b{font-size:28px}
+  .pts small{font-size:11px}
+  table{font-size:13px}
+  th{font-size:10px}
+  .rkc{font-size:17px;width:34px}
+  .pl-name{font-size:13.5px}
+  .chip{font-size:11.5px}
+  .bigpts{font-size:18px}
+  .medal{min-width:19px;height:19px;font-size:11px}
+  .ev-name{font-size:16px}
+  .ev-no{font-size:24px}
+  .crown-title{font-size:28px}
+  .crown-name{font-size:21px}
+  .crown-who,.crown-recs ul{font-size:13px}
+  .btn{font-size:13px}
+  .m-row{grid-template-columns:1fr auto auto auto 1fr;gap:6px}
+  .m-res button{padding:5px 9px;font-size:12px}
+}
+.hero.compact{padding-block:0 12px;align-items:center}
+.hero.compact h1{font-size:clamp(30px,7vw,44px)}
+.hero.compact .acro,.hero.compact .motto,.hero.compact .eyebrow{display:none}
+@media (max-width:600px){
+  .hero.compact .hero-side{flex-direction:row;align-items:center;justify-content:space-between}
+  .tabs{gap:2px}
+  .tab{padding:7px 11px;font-size:13.5px}
+  td,th{padding-inline:8px}
+  .score-tbl td:first-child{max-width:120px}
+  .score-tbl .chip{font-size:11.5px}
+  input.score{width:62px;padding:6px}
+  .score-tbl .bigpts{font-size:19px}
+}
+.crown{position:relative;background:var(--surface);border:2px solid var(--gold);border-radius:var(--r);padding:18px 18px 16px;margin-top:16px;display:flex;flex-direction:column;gap:8px;box-shadow:inset 8px 0 0 var(--tc)}
+.crown .eyebrow{color:var(--gold)}
+.crown-title{font-size:clamp(30px,7vw,46px);margin:0;text-wrap:balance}
+.crown-who{margin:0;font-size:14.5px;color:var(--muted)}
+.crown-who b{color:var(--ink)}
+.crown-champ{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;border-top:1px solid var(--line);padding-top:10px}
+.crown-name{font-family:var(--f-display);font-weight:800;font-size:26px;text-transform:uppercase;line-height:1}
+.crown-recs{border-top:1px solid var(--line);padding-top:10px}
+.crown-recs ul{margin:6px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:3px}
+.mv{display:block;font-family:var(--f-body);font-size:11px;font-weight:700;line-height:1.2;margin-top:2px;letter-spacing:0}
+.rkc .mv{display:inline-block;margin:0 0 0 4px;vertical-align:middle}
+.mv.up{color:var(--good)} .mv.down{color:var(--danger)} .mv.same{color:var(--muted)}
+.more-btn{margin-top:8px;width:100%;justify-content:center}
+.rc-wrap{padding:8px 4px}
+.rc{display:block;width:100%;min-width:520px;height:auto}
+.rc-grid{stroke:var(--line);stroke-width:1}
+.rc-tick{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+.rc-lbl{fill:var(--muted);font-family:var(--f-body);font-size:11px}
+.rc-end{fill:var(--ink);font-family:var(--f-body);font-size:12.5px;font-weight:600}
+.rc-v{font-family:var(--f-display);font-weight:800;font-size:15px}
+.rc-pt{stroke:var(--surface);stroke-width:1.5}
+.ev-wrap{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ev-wrap .ev{flex:1}
+.ev-move{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.hero{border-bottom:2px solid var(--ink)}
+.motto{color:var(--gold);border-color:var(--gold)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+.team.lead{border-color:var(--gold);border-left-color:var(--tc);box-shadow:0 0 0 1px var(--gold)}
+.bar{background:var(--surface-2)}
+.medal.b{color:#fff}
+.savebar .btn.primary{background:var(--surface);color:var(--ink);border-color:var(--surface)}
+.yearbar{display:flex;gap:6px;overflow-x:auto;padding-block:2px 6px;margin-top:4px;scrollbar-width:none}
+.yearbar::-webkit-scrollbar{display:none}
+.yearbar .tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13px;padding:6px 14px;flex:none}
+.yearbar .tab[aria-selected="true"]{background:var(--gold);border-color:var(--gold);color:#fff}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);vertical-align:middle;margin-left:4px}
+.seeall{border:0;background:none;padding:0;font-size:13px;font-weight:700;color:var(--gold)}
+.pcard{margin-top:18px}
+.plist2{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.pa{display:grid;grid-template-columns:24px 12px minmax(0,1fr) 70px 44px 34px;align-items:center;gap:8px;padding:9px 12px;border:0;border-bottom:1px solid var(--line);background:transparent;width:100%;text-align:left;font-size:14px}
+.pa:last-child{border-bottom:0}.pa:hover{background:var(--surface-2)}.pa .pn{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pa b{font-family:var(--f-display);font-weight:800;font-size:19px;text-align:right}.pa small{font-size:11px;font-weight:700;text-align:right}
+.prk{font-family:var(--f-display);font-weight:800;font-size:20px;line-height:1}
+.prk .mv{font-size:10.5px}
+.up{color:var(--good)}.down{color:var(--danger)}.mut{color:var(--muted)}
+.plist{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.pr{display:grid;grid-template-columns:30px minmax(0,1fr) 84px 76px;gap:10px;align-items:center;padding:10px 12px;border:0;border-bottom:1px solid var(--line);border-left:4px solid var(--tc);background:transparent;width:100%;text-align:left}
+.pr:hover,.pr.open{background:var(--surface-2)}
+.pnm{min-width:0;display:flex;flex-direction:column;align-items:flex-start}.pnm .pl-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.prt{text-align:right;display:flex;flex-direction:column;align-items:flex-end}.prt b{font-family:var(--f-display);font-weight:800;font-size:22px;line-height:1}.prt small{font-size:11px;font-weight:600}
+.pchip{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:1px 6px;color:var(--muted);vertical-align:middle;margin-left:4px}
+.few{font-size:11px}
+.pdetail{padding:6px 12px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);border-left:4px solid var(--tc)}
+.pw-chart{display:block;width:100%;height:auto}
+.pw-ax{fill:var(--muted);font-size:10px;font-family:var(--f-body)}.pw-end{fill:var(--ink);font-family:var(--f-display);font-weight:800;font-size:15px}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}.pstats div{display:flex;flex-direction:column;min-width:0}.pstats b{font-family:var(--f-display);font-weight:800;font-size:20px}.pstats small{font-size:11px;color:var(--muted)}
+@media (max-width:380px){.pr{grid-template-columns:26px minmax(0,1fr) 64px 70px;gap:8px}.pa{grid-template-columns:20px 10px minmax(0,1fr) 56px 40px 32px;gap:6px}}
+.fbtag{display:inline-block;margin-left:6px;font-family:var(--f-body);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px dashed var(--muted);border-radius:999px;padding:1px 6px;color:var(--muted);vertical-align:middle;line-height:1.4}
+.fbtag.fav{border:1px solid var(--gold);background:var(--gold);color:#fff}
+.favl{font-size:13px;color:var(--muted)}.favl b{color:var(--ink)}
+
+.tab{display:inline-flex;align-items:center;gap:6px}.tab-ic{flex:none}
+.lu{margin-top:14px}
+.lu-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lu-track::-webkit-scrollbar{display:none}
+.lu-track>.lucard{flex:0 0 100%;scroll-snap-align:start}
+.lu-dots{display:flex;justify-content:center;gap:8px;margin-top:8px}
+.lu-dot{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--line)}
+.lu-dot[aria-selected="true"]{background:var(--ink);width:20px;border-radius:4px}
+.lucard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0;box-sizing:border-box}
+.lucard.latest{border-left:4px solid var(--gold)}.lucard.next{border-left:4px solid var(--ink)}
+.lucard .eyebrow{color:var(--gold);font-size:11px}.lucard.next .eyebrow{color:var(--ink)}
+.lucard h3{font-family:var(--f-display);font-weight:800;font-size:21px;text-transform:uppercase;letter-spacing:.02em;line-height:1.05;margin:0;text-wrap:balance}
+.lucard .sub{font-size:13px;color:var(--muted);margin:0}
+.lucard ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.lucard li{display:flex;gap:7px;align-items:baseline}.lucard li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);flex:none;transform:translateY(-2px)}
+.trophy{display:inline-block;vertical-align:-3px;margin-left:6px}
+.team.lead{background:color-mix(in srgb,#F2C230 13%,var(--surface))}
+.team.lead .rk{color:#B8870A}
+tr.yjrow td{background:color-mix(in srgb,#F2C230 13%,var(--surface))}
+.rkc.rk1{color:#B8870A}.rkc.rk2{color:#7F8A99}.rkc.rk3{color:#A0653A}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="application/json" id="state">{"v": 3, "year": 2026, "teams": [{"id": "t1", "name": "Team 1", "color": "#c95968"}, {"id": "t2", "name": "Team 2", "color": "#7397c4"}, {"id": "t3", "name": "Team 3", "color": "#63a180"}, {"id": "t4", "name": "Team 4", "color": "#cfa24a"}], "players": [{"id": "p1", "name": "Michael Simpson", "team": "t1"}, {"id": "p2", "name": "Jack Dever", "team": "t1"}, {"id": "p3", "name": "Charlie Stringer", "team": "t1"}, {"id": "p4", "name": "Simon March", "team": "t1"}, {"id": "p5", "name": "James Booth", "team": "t2"}, {"id": "p6", "name": "Stefan Rowell", "team": "t2"}, {"id": "p7", "name": "Joe Simpson", "team": "t2"}, {"id": "p8", "name": "John Bordiss", "team": "t2"}, {"id": "p9", "name": "Will Taylor", "team": "t3"}, {"id": "p10", "name": "Rob Grant", "team": "t3"}, {"id": "p11", "name": "Alex Ozegovic", "team": "t3"}, {"id": "p12", "name": "Will Clarke", "team": "t3"}, {"id": "p13", "name": "Atish Patel", "team": "t4"}, {"id": "p14", "name": "George Majstorovic", "team": "t4"}, {"id": "p15", "name": "Matt Davis", "team": "t4"}, {"id": "p16", "name": "Aristide Goualin", "team": "t4"}], "events": [{"id": "em1", "name": "Mystery event 1", "low": false, "scores": {}}, {"id": "e2", "name": "Minigolf", "low": true, "scores": {}}, {"id": "em2", "name": "Mystery event 2", "low": false, "scores": {}}, {"id": "e1", "name": "Darts", "low": false, "scores": {}}, {"id": "e3", "name": "Bowling", "low": false, "scores": {}}], "archive": [{"year": 2021, "teams": [{"name": "Aristide & Charlie", "color": "#c95968", "members": ["Aristide Goualin", "Charlie Stringer"]}, {"name": "Atish & James", "color": "#7397c4", "members": ["Atish Patel", "James Booth"]}, {"name": "Jack & Michael", "color": "#63a180", "members": ["Jack Dever", "Michael Simpson"]}, {"name": "Stefan & Will", "color": "#cfa24a", "members": ["Stefan Rowell", "Will Clarke"]}], "events": [{"name": "Darts", "low": false, "scores": {"Aristide Goualin": 39, "Atish Patel": 78, "Charlie Stringer": 84, "Jack Dever": 77, "James Booth": 95, "Michael Simpson": 104, "Stefan Rowell": 94, "Will Clarke": 74}}, {"name": "Bowling", "low": false, "scores": {"Aristide Goualin": 138, "Atish Patel": 114, "Charlie Stringer": 120, "Jack Dever": 108, "James Booth": 134, "Michael Simpson": 114, "Stefan Rowell": 77, "Will Clarke": 92}}, {"name": "Minigolf", "low": true, "scores": {"Aristide Goualin": 25, "Atish Patel": 27, "Charlie Stringer": 23, "Jack Dever": 27, "James Booth": 24, "Michael Simpson": 22, "Stefan Rowell": 26, "Will Clarke": 33}}, {"name": "Beer Pong", "kind": "pts", "points": {"Aristide Goualin": 5.5, "Atish Patel": 1.5, "Charlie Stringer": 5.5, "Jack Dever": 7.5, "James Booth": 1.5, "Michael Simpson": 7.5, "Stefan Rowell": 3.5, "Will Clarke": 3.5}}]}, {"year": 2023, "teams": [{"name": "Aristide & Atish", "color": "#c95968", "members": ["Aristide Goualin", "Atish Patel"]}, {"name": "Charlie & Jack", "color": "#7397c4", "members": ["Charlie Stringer", "Jack Dever"]}, {"name": "James & Will", "color": "#63a180", "members": ["James Booth", "Will Clarke"]}, {"name": "Michael & Stefan", "color": "#cfa24a", "members": ["Michael Simpson", "Stefan Rowell"]}], "events": [{"name": "Bowling", "low": false, "scores": {"Aristide Goualin": 102, "Atish Patel": 168, "Charlie Stringer": 138, "Jack Dever": 152, "James Booth": 129, "Michael Simpson": 119, "Stefan Rowell": 101, "Will Clarke": 121}}, {"name": "Darts", "low": false, "scores": {"Aristide Goualin": 67, "Atish Patel": 94, "Charlie Stringer": 87, "Jack Dever": 83, "James Booth": 110, "Michael Simpson": 106, "Stefan Rowell": 82, "Will Clarke": 61}}, {"name": "Shuffleboard", "kind": "pts", "points": {"Aristide Goualin": 3.5, "Atish Patel": 3.5, "Charlie Stringer": 5.5, "Jack Dever": 5.5, "James Booth": 7.5, "Michael Simpson": 1.5, "Stefan Rowell": 1.5, "Will Clarke": 7.5}}, {"name": "Minigolf", "low": true, "scores": {"Aristide Goualin": 62, "Atish Patel": 61, "Charlie Stringer": 51, "Jack Dever": 51, "James Booth": 49, "Michael Simpson": 47, "Stefan Rowell": 56, "Will Clarke": 63}}, {"name": "Footgolf", "low": true, "scores": {"Aristide Goualin": 37, "Atish Patel": 41, "Charlie Stringer": 36, "Jack Dever": 39, "James Booth": 33, "Michael Simpson": 37, "Stefan Rowell": 48, "Will Clarke": 38}}, {"name": "Beer Pong", "kind": "pts", "points": {"Aristide Goualin": 7.5, "Atish Patel": 7.5, "Charlie Stringer": 3.5, "Jack Dever": 3.5, "James Booth": 5.5, "Michael Simpson": 1.5, "Stefan Rowell": 1.5, "Will Clarke": 5.5}}]}, {"year": 2024, "teams": [{"name": "Blue", "color": "#3F6FB5", "members": ["Aristide Goualin", "Matt Davis"]}, {"name": "White", "color": "#B9C0C9", "members": ["Atish Patel", "George Majstorovic"]}, {"name": "Yellow", "color": "#D9A92E", "members": ["Charlie Stringer", "Will Clarke"]}, {"name": "Black", "color": "#2B2F36", "members": ["Jack Dever", "Will Taylor"]}, {"name": "Red", "color": "#C9473F", "members": ["James Booth", "Michael Simpson"]}, {"name": "Green", "color": "#3E8E5E", "members": ["Joe Simpson", "John Bordiss"]}], "events": [{"name": "Bowling", "low": false, "scores": {"Aristide Goualin": 113, "Atish Patel": 106, "Charlie Stringer": 157, "George Majstorovic": 138, "Jack Dever": 154, "James Booth": 157, "Joe Simpson": 149, "John Bordiss": 120, "Matt Davis": 158, "Michael Simpson": 156, "Will Clarke": 125, "Will Taylor": 136}}, {"name": "Darts", "low": false, "scores": {"Aristide Goualin": 50, "Atish Patel": 91, "Charlie Stringer": 73, "George Majstorovic": 84, "Jack Dever": 84, "James Booth": 127, "Joe Simpson": 112, "John Bordiss": 80, "Matt Davis": 82, "Michael Simpson": 96, "Will Clarke": 74, "Will Taylor": 62}}, {"name": "Minigolf", "low": true, "scores": {"Aristide Goualin": 21, "Atish Patel": 24, "Charlie Stringer": 20, "George Majstorovic": 21, "Jack Dever": 26, "James Booth": 24, "Joe Simpson": 21, "John Bordiss": 20, "Matt Davis": 23, "Michael Simpson": 23, "Will Clarke": 29, "Will Taylor": 18}}, {"name": "Shuffleboard", "kind": "pts", "points": {"Aristide Goualin": 3.5, "Atish Patel": 7.5, "Charlie Stringer": 1.5, "George Majstorovic": 7.5, "Jack Dever": 5.5, "James Booth": 11.5, "Joe Simpson": 9.5, "John Bordiss": 9.5, "Matt Davis": 3.5, "Michael Simpson": 11.5, "Will Clarke": 1.5, "Will Taylor": 5.5}}]}, {"year": 2025, "teams": [{"name": "Team 6", "color": "#c95968", "members": ["Andrew Wilkie", "Will Taylor"]}, {"name": "Team 3", "color": "#7397c4", "members": ["Aristide Goualin", "Charlie Stringer"]}, {"name": "Team 1", "color": "#63a180", "members": ["Atish Patel", "James Booth"]}, {"name": "Team 2", "color": "#cfa24a", "members": ["Jack Dever", "Michael Simpson"]}, {"name": "Team 7", "color": "#8a6bb8", "members": ["Joe Simpson", "John Bordiss"]}, {"name": "Team 5", "color": "#3f9ea0", "members": ["Matt Davis", "Will Clarke"]}, {"name": "Team 4", "color": "#c27a45", "members": ["Rob Grant", "Stefan Rowell"]}], "events": [{"name": "Curling", "kind": "pts", "points": {"Andrew Wilkie": 4.5, "Aristide Goualin": 7.5, "Atish Patel": 1.5, "Charlie Stringer": 7.5, "Jack Dever": 13.5, "James Booth": 1.5, "Joe Simpson": 9.5, "John Bordiss": 9.5, "Matt Davis": 4.5, "Michael Simpson": 13.5, "Rob Grant": 11.5, "Stefan Rowell": 11.5, "Will Clarke": 4.5, "Will Taylor": 4.5}}, {"name": "Crazy Pool", "low": true, "scores": {"Andrew Wilkie": 24, "Aristide Goualin": 27, "Atish Patel": 29, "Charlie Stringer": 29, "Jack Dever": 26, "James Booth": 32, "Joe Simpson": 22, "John Bordiss": 24, "Matt Davis": 31, "Michael Simpson": 27, "Rob Grant": 32, "Stefan Rowell": 27, "Will Clarke": 26, "Will Taylor": 28}}, {"name": "Bowling", "low": false, "scores": {"Andrew Wilkie": 100, "Aristide Goualin": 109, "Atish Patel": 109, "Charlie Stringer": 123, "Jack Dever": 151, "James Booth": 161, "Joe Simpson": 142, "John Bordiss": 83, "Matt Davis": 124, "Michael Simpson": 153, "Rob Grant": 100, "Stefan Rowell": 73, "Will Clarke": 130, "Will Taylor": 93}}, {"name": "Minigolf", "low": true, "scores": {"Andrew Wilkie": 21, "Aristide Goualin": 23, "Atish Patel": 24, "Charlie Stringer": 22, "Jack Dever": 27, "James Booth": 26, "Joe Simpson": 23, "John Bordiss": 27, "Matt Davis": 20, "Michael Simpson": 25, "Rob Grant": 28, "Stefan Rowell": 27, "Will Clarke": 25, "Will Taylor": 26}}, {"name": "Darts", "low": false, "scores": {"Andrew Wilkie": 84, "Aristide Goualin": 65, "Atish Patel": 94, "Charlie Stringer": 106, "Jack Dever": 94, "James Booth": 90, "Joe Simpson": 80, "John Bordiss": 31, "Matt Davis": 76, "Michael Simpson": 86, "Rob Grant": 83, "Stefan Rowell": 59, "Will Clarke": 47, "Will Taylor": 59}}]}], "updatedAt": "2026-10-01T17:42:21.777Z", "eventAdj": {"minigolf": {"james booth": -80, "michael simpson": 10, "charlie stringer": 58, "joe simpson": -13, "matt davis": 46, "jack dever": -80, "george majstorovic": 18, "atish patel": -58, "rob grant": -49, "aristide goualin": 64, "will taylor": 80, "john bordiss": 52, "stefan rowell": 37, "will clarke": -65}, "darts": {"james booth": 80, "michael simpson": 63, "charlie stringer": -45, "joe simpson": -13, "matt davis": -54, "jack dever": 24, "george majstorovic": 7, "atish patel": 80, "rob grant": 76, "aristide goualin": -80, "will taylor": -77, "john bordiss": -63, "stefan rowell": 62, "will clarke": -65}, "bowling": {"james booth": 47, "michael simpson": -46, "charlie stringer": 14, "joe simpson": -23, "matt davis": 80, "jack dever": 75, "george majstorovic": -25, "atish patel": 10, "rob grant": 13, "aristide goualin": 14, "will taylor": -36, "john bordiss": -80, "stefan rowell": -80, "will clarke": 56}}, "rev": 1}</script>
+<script id="app-script">
+(function(){
+"use strict";
+var APP=document.getElementById('app');
+var PALETTE=['#D7263D','#1F6FD1','#1E9E5A','#E39B0B','#7B3FBF','#0F8C8C'];
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+var clone=function(o){return JSON.parse(JSON.stringify(o));};
+var nkey=function(n){return String(n||'').trim().toLowerCase().replace(/\s+/g,' ');};
+var ekey=function(n){return String(n||'').toLowerCase().replace(/[^a-z0-9]/g,'');};
+var fmt=function(n){return n==null?'':(Math.round(n*10)/10)%1?(Math.round(n*10)/10).toFixed(1):String(Math.round(n));};
+var isNum=function(v){return v!==''&&v!=null&&!isNaN(+v);};
+var ls={get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+var ss={get:function(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set:function(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},del:function(k){try{sessionStorage.removeItem(k);}catch(e){}}};
+function hash(s){var x=5381;var str='cc|'+s;for(var i=0;i<str.length;i++){x=((x*33)^str.charCodeAt(i))>>>0;}return x.toString(36);}
+function ordinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+var NOTEAM={name:'No team',color:'#8A8F98'};
+
+var state=JSON.parse(document.getElementById('state').textContent);
+if(!state.archive) state.archive=[];
+var draft=null;
+var ui={tab:ss.get('cc-tab')||'standings',ev:ss.get('cc-ev')||null,year:ss.get('cc-year')||null,unlocked:false,user:null,email:'',
+  sortAll:'points',menu:false,pw:null,pwAll:false,allInd:ss.get('cc-allind')==='1',pinOpen:false,pinErr:'',signing:false,confirm:null,saving:false,canWrite:null,toast:null};
+
+function cur(){return draft||state;}
+function dirty(){return !!draft&&JSON.stringify(draft)!==JSON.stringify(state);}
+function edit(){if(!draft)draft=clone(state);return draft;}
+function teamOf(s,id){for(var i=0;i<s.teams.length;i++)if(s.teams[i].id===id)return s.teams[i];return null;}
+function evById(s,id){return s.events.filter(function(e){return e.id===id;})[0];}
+function isH2H(ev){return ev.kind==='h2h';}
+function hasResults(ev){if(ev.kind==='pts'){var pp=ev.points||{};for(var k0 in pp)if(isNum(pp[k0]))return true;return false;}if(isH2H(ev)){var m=ev.matches||[];return m.length>0&&m.every(function(x){return !!x.res;});}var r=ev.scores||{};for(var k in r)if(isNum(r[k]))return true;return false;}
+function inProgress(ev){return isH2H(ev)&&!hasResults(ev)&&(ev.matches||[]).some(function(x){return !!x.res;});}
+/* Round robin (circle method): everyone plays everyone once */
+function fixtures(ids){
+  var t=ids.slice(),out=[];if(t.length%2)t.push(null);var n=t.length;
+  for(var r=0;r<n-1;r++){for(var i=0;i<n/2;i++){var a=t[i],b=t[n-1-i];if(a&&b)out.push({a:a,b:b,round:r+1,sa:'',sb:'',res:null});}t.splice(1,0,t.pop());}
+  return out;
+}
+function newH2H(teams){return {kind:'h2h',mp:{w:3,d:1,l:0},matches:fixtures(teams.map(function(t){return t.id;})),scores:{}};}
+/* Event league table: match points, then score difference (only when scores were entered), else a shared place */
+function h2hTable(ev,teams){
+  var mp=ev.mp||{w:3,d:1,l:0},R={},order={};
+  teams.forEach(function(t,i){order[t.id]=i;R[t.id]={id:t.id,p:0,w:0,d:0,l:0,f:0,a:0,pts:0};});
+  var anyScore=false;
+  (ev.matches||[]).forEach(function(m){var A=R[m.a],B=R[m.b];if(!A||!B||!m.res)return;A.p++;B.p++;
+    if(isNum(m.sa)&&isNum(m.sb)){anyScore=true;A.f+=+m.sa;A.a+=+m.sb;B.f+=+m.sb;B.a+=+m.sa;}
+    if(m.res==='a'){A.w++;B.l++;A.pts+=+mp.w;B.pts+=+mp.l;}else if(m.res==='b'){B.w++;A.l++;B.pts+=+mp.w;A.pts+=+mp.l;}else{A.d++;B.d++;A.pts+=+mp.d;B.pts+=+mp.d;}});
+  var rows=Object.keys(R).map(function(k){var r=R[k];r.diff=r.f-r.a;r.key=r.pts+'|'+(anyScore?r.diff:0);return r;});
+  rows.sort(function(x,y){return y.pts-x.pts||(anyScore?y.diff-x.diff:0)||order[x.id]-order[y.id];});
+  var rank=0,prev=null;rows.forEach(function(r,i){if(r.key!==prev){rank=i+1;prev=r.key;}r.rank=rank;});
+  return {rows:rows,anyScore:anyScore};
+}
+
+/* ---------- Scoring ----------
+   Points per place: N players in the year -> 1st scores N, last scores 1.
+   Tied scores share the places they cover, averaged (two tied 1st of 16 = (16+15)/2 = 15.5 each). */
+function evalEvent(ev,s){
+  var players=s.players;
+  if(ev.kind==='pts'){
+    /* Team event from past years: CC points were entered directly; place = rank by points */
+    var pp=ev.points||{},lst=players.filter(function(p){return isNum(pp[p.id]);}).map(function(p){return {id:p.id,v:+pp[p.id]};}),oo={};
+    lst.sort(function(a,b){return b.v-a.v;});
+    lst.forEach(function(x,i){var pl=1;for(var q=0;q<lst.length;q++)if(lst[q].v>x.v)pl++;oo[x.id]={place:pl,pts:x.v,score:null,last:false};});
+    if(lst.length>1){var lv=lst[lst.length-1].v;lst.forEach(function(x){if(x.v===lv)oo[x.id].last=true;});}
+    return oo;
+  }
+  if(isH2H(ev)){
+    if(!hasResults(ev))return {};
+    var rows=h2hTable(ev,s.teams).rows,N0=players.length,slot=0,o={},i0=0;
+    while(i0<rows.length){
+      var j0=i0;while(j0+1<rows.length&&rows[j0+1].key===rows[i0].key)j0++;
+      var ids=[];for(var q=i0;q<=j0;q++)players.forEach(function(p){if(p.team===rows[q].id)ids.push(p.id);});
+      var tot=0;for(var z=0;z<ids.length;z++)tot+=Math.max(N0-slot-z,0);
+      var each=ids.length?tot/ids.length:0;
+      ids.forEach(function(id){o[id]={place:i0+1,pts:each,score:null,last:false};});
+      slot+=ids.length;i0=j0+1;
+    }
+    if(rows.length>1){var lk=rows[rows.length-1].key;rows.forEach(function(rw){if(rw.key===lk)players.forEach(function(p){if(p.team===rw.id&&o[p.id])o[p.id].last=true;});});}
+    return o;
+  }
+  var N=players.length,sc=ev.scores||{},low=!!ev.low;
+  var list=players.filter(function(p){return isNum(sc[p.id]);}).map(function(p){return {id:p.id,score:+sc[p.id]};});
+  list.sort(function(a,b){return low?a.score-b.score:b.score-a.score;});
+  var out={},i=0,k;
+  while(i<list.length){
+    var j=i; while(j+1<list.length&&list[j+1].score===list[i].score)j++;
+    var sum=0; for(k=i;k<=j;k++)sum+=Math.max(N-k,0);
+    for(k=i;k<=j;k++)out[list[k].id]={place:i+1,pts:sum/(j-i+1),score:list[k].score,last:false};
+    i=j+1;
+  }
+  if(list.length>1){var ls=list[list.length-1].score;list.forEach(function(x){if(x.score===ls)out[x.id].last=true;});}
+  return out;
+}
+function compute(s){
+  var P={},T={},R={};
+  s.players.forEach(function(p){P[p.id]={pts:0,g:0,s:0,b:0,played:0,won:0,lost:0,by:{}};});
+  s.teams.forEach(function(t){T[t.id]={pts:0,by:{}};});
+  s.events.forEach(function(ev){
+    var r=evalEvent(ev,s),any=hasResults(ev); R[ev.id]=r;
+    s.teams.forEach(function(t){T[t.id].by[ev.id]=any?0:null;});
+    s.players.forEach(function(p){
+      var x=r[p.id],q=P[p.id]; q.by[ev.id]=x?x.pts:null; if(!x)return;
+      q.pts+=x.pts; q.played++;
+      if(x.place===1){q.g++;q.won++;} else if(x.place===2)q.s++; else if(x.place===3)q.b++;
+      if(x.last)q.lost++;
+      if(T[p.team]){T[p.team].pts+=x.pts;T[p.team].by[ev.id]+=x.pts;}
+    });
+  });
+  return {P:P,T:T,R:R};
+}
+function ranked(list,key){var out=[],prev=null,rank=0;list.forEach(function(it,i){var k=key(it);if(k!==prev){rank=i+1;prev=k;}out.push({it:it,rank:rank});});return out;}
+function rankLabel(r,arr){var n=0;arr.forEach(function(x){if(x.rank===r)n++;});return (n>1?'=':'')+r;}
+function sortTeams(s,c){return s.teams.slice().sort(function(a,b){return c.T[b.id].pts-c.T[a.id].pts||a.name.localeCompare(b.name);});}
+function sortPlayers(s,c){return s.players.slice().sort(function(a,b){var A=c.P[a.id],B=c.P[b.id];return B.pts-A.pts||B.g-A.g||B.s-A.s||B.b-A.b||a.name.localeCompare(b.name);});}
+
+/* ---------- Archive ----------
+   Archived year: {year, teams:[{name,color,members:[names]}], events:[{name,low,scores:{playerName:score}}]} */
+function toArchive(s){
+  var nameOf={};s.players.forEach(function(p){nameOf[p.id]=p.name;});
+  return {year:s.year,
+    teams:s.teams.map(function(t){return {name:t.name,color:t.color,members:s.players.filter(function(p){return p.team===t.id;}).map(function(p){return p.name;})};}),
+    events:s.events.filter(hasResults).map(function(e){
+      if(e.kind==='pts'){var pn={};Object.keys(e.points||{}).forEach(function(id){if(nameOf[id])pn[nameOf[id]]=e.points[id];});return {name:e.name,kind:'pts',points:pn};}
+      if(isH2H(e)){var tn={};s.teams.forEach(function(t){tn[t.id]=t.name;});return {name:e.name,kind:'h2h',mp:e.mp,matches:(e.matches||[]).map(function(m){return {a:tn[m.a],b:tn[m.b],round:m.round,sa:m.sa,sb:m.sb,res:m.res};})};}
+      var r={};Object.keys(e.scores).forEach(function(id){if(isNum(e.scores[id])&&nameOf[id])r[nameOf[id]]=+e.scores[id];});return {name:e.name,low:!!e.low,scores:r};})};
+}
+function archiveToState(a){
+  var st={year:a.year,teams:[],players:[],events:[]},idOf={};
+  (a.teams||[]).forEach(function(t,i){
+    var tid='t'+i;st.teams.push({id:tid,name:t.name,color:t.color||PALETTE[i%PALETTE.length]});
+    (t.members||[]).forEach(function(m){var pid='p'+st.players.length;idOf[nkey(m)]=pid;st.players.push({id:pid,name:m,team:tid});});
+  });
+  (a.events||[]).forEach(function(e,i){
+    if(e.kind==='pts'){var pr={};
+      Object.keys(e.points||{}).forEach(function(n){var k=nkey(n);if(!idOf[k]){var pid='p'+st.players.length;idOf[k]=pid;st.players.push({id:pid,name:n,team:null});}pr[idOf[k]]=e.points[n];});
+      st.events.push({id:'e'+i,name:e.name,kind:'pts',points:pr,scores:{}});return;}
+    if(e.kind==='h2h'){var ti={};st.teams.forEach(function(t){ti[nkey(t.name)]=t.id;});
+      st.events.push({id:'e'+i,name:e.name,kind:'h2h',mp:e.mp,scores:{},matches:(e.matches||[]).map(function(m){return {a:ti[nkey(m.a)],b:ti[nkey(m.b)],round:m.round,sa:m.sa,sb:m.sb,res:m.res};})});return;}
+    var r={};
+    Object.keys(e.scores||{}).forEach(function(n){var k=nkey(n);if(!idOf[k]){var pid='p'+st.players.length;idOf[k]=pid;st.players.push({id:pid,name:n,team:null});}r[idOf[k]]=e.scores[n];});
+    st.events.push({id:'e'+i,name:e.name,low:!!e.low,scores:r});
+  });
+  return st;
+}
+function summarise(a,live){
+  var st=archiveToState(a),c=compute(st),ts=sortTeams(st,c);
+  var top=ts.length?c.T[ts[0].id].pts:0;
+  var teamWin=top>0?ts.filter(function(t){return c.T[t.id].pts===top;}):[];
+  var ps=sortPlayers(st,c),b=ps[0]&&c.P[ps[0].id],champs=[];
+  if(b&&b.pts>0)champs=ps.filter(function(p){return c.P[p.id].pts===b.pts;});
+  return {a:a,st:st,c:c,teams:ts,teamWin:teamWin,champs:champs,live:!!live};
+}
+function allYears(s){
+  var ys=(s.archive||[]).map(function(a){return summarise(a,false);});
+  if(s.events.some(hasResults)&&!(s.archive||[]).some(function(a){return String(a.year)===String(s.year);}))ys.push(summarise(toArchive(s),true));
+  return ys.sort(function(x,y){return (parseInt(y.a.year,10)||0)-(parseInt(x.a.year,10)||0);});
+}
+function membersOf(sm,t){return sm.st.players.filter(function(p){return p.team===t.id;}).map(function(p){return p.name;});}
+
+/* ---------- Render ---------- */
+function render(){
+  var s=cur(),c=compute(s);
+  var done=s.events.filter(hasResults).length;
+  var ts=sortTeams(s,c),leadPts=ts.length?c.T[ts[0].id].pts:0,status;
+  if(s.final){var tw0=ts.filter(function(t){return c.T[t.id].pts===leadPts;});status='<strong>Final result.</strong> '+names(tw0.map(function(t){return t.name;}))+(tw0.length>1?' share':' win')+' the '+esc(s.year)+' Cup';}
+  else if(!done)status='<strong>No results yet.</strong> '+s.events.length+' event'+(s.events.length===1?'':'s')+' lined up.';
+  else{var tied=ts.filter(function(t){return c.T[t.id].pts===leadPts;});
+    status='<strong>'+(tied.length>1?'Level at the top':esc(ts[0].name)+' lead')+'</strong> · '+done+' of '+s.events.length+' events done';}
+  if(state.updatedAt){try{var dt=new Date(state.updatedAt);status+='<br>Updated '+dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+dt.toLocaleDateString([],{day:'numeric',month:'short'});}catch(e){}}
+  var keeperBtn=(ui.canWrite===false&&!ui.unlocked)?'':'<button class="cog'+(ui.unlocked?' on':'')+'" data-act="keeper" aria-label="Scorekeeper settings" aria-expanded="'+(ui.unlocked?ui.menu:ui.pinOpen)+'"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>'
+    +(ui.unlocked&&ui.menu?'<div class="cog-menu" role="menu"><p class="lbl">Scorekeeper mode on</p><button class="btn small" data-act="tab" data-v="setup" role="menuitem">Setup</button><button class="btn small" data-act="lock" role="menuitem">Lock scoring</button></div>':'');
+
+  var h='<header class="hero'+(ui.tab==='standings'?'':' compact')+'"><div class="hero-main"><p class="eyebrow">Annual friends’ olympics</p>'
+    +'<h1>The Cunt Cup</h1>'
+    +'<p class="acro"><b>C</b>hampions of <b>U</b>ndisputed <b>N</b>atural <b>T</b>alent</p>'
+    +'<p class="motto" lang="la">Acta non verba <span>· Deeds, not words</span></p></div>'
+    +'<div class="hero-side"><div class="status">'+status+'</div></div>'+keeperBtn+'</header>';
+  if(ui.pinOpen&&!ui.unlocked){
+    h+='<form class="pin" data-form="pin"><span class="lbl">Scorekeeper login</span>'
+      +'<input id="pin-email" type="email" autocomplete="username" placeholder="Email" value="'+esc(ui.email)+'">'
+      +'<input id="pin-in" type="password" autocomplete="current-password" placeholder="Password">'
+      +'<div class="row"><button class="btn primary" type="submit"'+(ui.signing?' disabled':'')+'>'+(ui.signing?'Signing in\u2026':'Sign in')+'</button><button class="btn ghost" type="button" data-act="pin-cancel">Cancel</button></div>'
+      +'<p class="hint">You stay signed in on this phone until you lock scoring.</p>'
+      +(ui.pinErr?'<p class="err">'+esc(ui.pinErr)+'</p>':'')+'</form>';
+  }
+  if(ui.unlocked&&ui.canWrite===false)h+='<div class="notice">You’re signed in, but this login can’t publish scores. Ask James to add your email as a scorekeeper.</div>';
+
+  var IC={standings:'<path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/>',events:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',power:'<path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/>',archive:'<path d="M8 4h8v4a4 4 0 0 1-8 0zM12 12v4M9 20h6M10 16h4v4h-4z"/>'};
+  var tabs=[['standings','Home'],['events','Events'],['power','Power'],['archive','Records']];
+  if(ui.tab==='setup'&&!ui.unlocked)ui.tab='standings';
+  h+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'"><svg class="tab-ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+IC[t[0]]+'</svg>'+t[1]+'</button>';}).join('')+'</nav>';
+
+  if(ui.tab==='standings')h+=(s.final?crownBanner(s,c,ts):dayCards(s,c,ts))+renderStandings(s,c,ts,true);
+  else if(ui.tab==='events')h+=ui.ev&&evById(s,ui.ev)?renderEvent(s,c):renderEvents(s,c);
+  else if(ui.tab==='power')h+=renderPower(s);
+  else if(ui.tab==='archive')h+=yearPills(s)+(ui.year?renderYear(s):renderArchive(s));
+  else if(ui.tab==='setup')h+=renderSetup(s);
+
+  h+='<footer>Save it to your phone: open this page, tap Share, then Add to Home Screen. With '+s.players.length+' players, 1st in an event scores '+s.players.length+' points down to 1 for last; tied scores split the points. A team’s score is the sum of its players’.</footer>';
+  if(ui.unlocked){
+    var d=dirty();
+    h+='<div class="savebar"><div class="savebar-in"><span class="msg">'+(ui.saving?'Publishing…':d?'Unsaved changes':'Scorekeeper mode · everything saved')+'</span>'
+      +(d?'<button class="btn small" data-act="discard"'+(ui.saving?' disabled':'')+'>Discard</button><button class="btn small primary" data-act="save"'+(ui.saving?' disabled':'')+'>Publish scores</button>':'')+'</div></div>';
+  }
+  if(ui.toast)h+='<div class="toast" role="status">'+esc(ui.toast)+'</div>';
+  APP.innerHTML=h;
+  if(ui.tab==='standings')animatePoints();
+  if(ui.pinOpen&&!ui.unlocked&&!ui.signing){var pi=document.getElementById(ui.email?'pin-in':'pin-email');if(pi)pi.focus();}
+}
+function medalsHtml(q){
+  var m=(q.g?'<span class="medal g" title="Golds">'+q.g+'</span>':'')+(q.s?'<span class="medal s" title="Silvers">'+q.s+'</span>':'')+(q.b?'<span class="medal b" title="Bronzes">'+q.b+'</span>':'');
+  return '<span class="medals">'+(m||'<span class="dash">–</span>')+'</span>';
+}
+function teamChip(t,big){return '<span class="chip" style="--tc:'+esc(t.color)+(big?';color:var(--ink);font-weight:600;font-size:14px':'')+'"><span class="dot"></span>'+esc(t.name)+'</span>';}
+
+/* Movers: rank change caused by the most recent event in running order */
+function movers(s,c,ts){
+  var done=s.events.filter(hasResults); if(done.length<2) return null;
+  var last=done[done.length-1], s0=clone(s); evById(s0,last.id).scores={};
+  var c0=compute(s0),T={},P={};
+  ranked(sortTeams(s0,c0),function(t){return c0.T[t.id].pts;}).forEach(function(x){T[x.it.id]=x.rank;});
+  ranked(sortPlayers(s0,c0),function(p){return c0.P[p.id].pts;}).forEach(function(x){P[x.it.id]=x.rank;});
+  return {T:T,P:P,after:last.name};
+}
+function mvHtml(prev,now){
+  if(prev==null) return '';
+  var d=prev-now;
+  if(d>0) return '<span class="mv up" title="Up '+d+' since the last event">▲'+d+'</span>';
+  if(d<0) return '<span class="mv down" title="Down '+(-d)+' since the last event">▼'+(-d)+'</span>';
+  return '<span class="mv same" title="No change since the last event">–</span>';
+}
+/* Records set this year, compared with everything before it */
+/* Team size of a year's teams (largest team), used to keep Cup totals comparable: pairs vs teams of 4 */
+function teamSizeOf(st,t){return st.players.filter(function(p){return p.team===t.id;}).length;}
+function sizeLabel(n){return n===2?'pairs':n===1?'solo':'teams of '+n;}
+function recordsSet(s){
+  var Lg=s.legacy||{},prior=(s.archive||[]).filter(function(a){return String(a.year)!==String(s.year);}).map(function(a){return summarise(a);}),out=[];
+  s.events.forEach(function(ev){
+    if(!hasResults(ev))return;var low=!!ev.low,k=ekey(ev.name),best=null;
+    (Lg.events||[]).forEach(function(le){if(ekey(le.name)===k&&le.best!=null)best=le.best;});
+    prior.forEach(function(y){y.st.events.forEach(function(e){if(ekey(e.name)!==k)return;Object.keys(e.scores).forEach(function(id){var v=e.scores[id];if(isNum(v)&&(best==null||better(+v,best,low)))best=+v;});});});
+    var r=evalEvent(ev,s),top=null,who=[];
+    s.players.forEach(function(p){var x=r[p.id];if(!x||!isNum(x.score))return;if(top==null||better(x.score,top,low)){top=x.score;who=[p.name];}else if(x.score===top)who.push(p.name);});
+    if(top!=null&&(best==null||better(top,best,low)))out.push({title:ev.name,v:top,who:who,prev:best});
+  });
+  var cbs={},hb=Lg.champion?Lg.champion.best:null;
+  prior.forEach(function(y){y.teams.forEach(function(t){var z=teamSizeOf(y.st,t),v=y.c.T[t.id].pts;if(cbs[z]==null||v>cbs[z])cbs[z]=v;});y.st.players.forEach(function(p){var v=y.c.P[p.id].pts;if(hb==null||v>hb)hb=v;});});
+  var c=compute(s),ts=sortTeams(s,c),ps=sortPlayers(s,c);
+  if(ts.length){var tv=c.T[ts[0].id].pts,sz=teamSizeOf(s,ts[0]),cb=cbs[sz]==null?null:cbs[sz];
+    if(tv>0&&(cb==null||tv>cb))out.unshift({title:'C.U.N.T Cup team total ('+sizeLabel(sz)+')',v:tv,who:ts.filter(function(t){return c.T[t.id].pts===tv;}).map(function(t){return t.name;}),prev:cb});}
+  if(ps.length){var pv=c.P[ps[0].id].pts;if(pv>0&&(hb==null||pv>hb))out.unshift({title:'Individual season total',v:pv,who:ps.filter(function(p){return c.P[p.id].pts===pv;}).map(function(p){return p.name;}),prev:hb});}
+  return out;
+}
+/* ---------- Form book: favourites and outsiders ----------
+   Based on ratings before this year's first event, so tags never shift during the day. */
+function preDay(s){
+  var cy=String(s.year),s0=clone(s);
+  s0.archive=(s0.archive||[]).filter(function(a){return String(a.year)!==cy;});
+  s0.events.forEach(function(e){e.scores={};if(e.matches)e.matches.forEach(function(m){m.res=null;m.sa='';m.sb='';});if(e.points)e.points={};});
+  s0.final=false;return s0;
+}
+function formBook(s){
+  var s0=preDay(s);
+  var R=eloRun(s0,false).R,rate=function(n){var v=R[nkey(n)];return v==null?ELO_START:v;};
+  var fb={player:{},team:{},event:{},pc:{},ps:{},tc:{}};
+  var sw=0,ss=0;s.players.forEach(function(p){sw+=Math.pow(10,rate(p.name)/130);ss+=Math.pow(10,-rate(p.name)/130);});
+  s.players.forEach(function(p){fb.pc[p.id]=Math.pow(10,rate(p.name)/130)/sw;fb.ps[p.id]=Math.pow(10,-rate(p.name)/130)/ss;});
+  if(s.players.length>1){
+    var ps=s.players.slice().sort(function(a,b){return rate(b.name)-rate(a.name);});
+    var hi=rate(ps[0].name),lo=rate(ps[ps.length-1].name);
+    if(hi>lo){ps.forEach(function(p){var v=rate(p.name);if(v===hi)fb.player[p.id]='fav';else if(v===lo)fb.player[p.id]='spoon';});}
+  }
+  var tr=s.teams.map(function(t){var m=s.players.filter(function(p){return p.team===t.id;});return {id:t.id,v:m.length?m.reduce(function(a,p){return a+rate(p.name);},0)/m.length:null};}).filter(function(x){return x.v!=null;});
+  var tsum=0;tr.forEach(function(x){tsum+=Math.pow(10,x.v/80);});tr.forEach(function(x){fb.tc[x.id]=Math.pow(10,x.v/80)/tsum;});
+  if(tr.length>1){var th=Math.max.apply(null,tr.map(function(x){return x.v;})),tl=Math.min.apply(null,tr.map(function(x){return x.v;}));
+    if(th>tl)tr.forEach(function(x){if(x.v===th)fb.team[x.id]='fav';else if(x.v===tl)fb.team[x.id]='out';});}
+  /* Event favourite: best average performance % at that event in past years, among this year's players (min 2 appearances, or every appearance if held fewer times) */
+  var inField={};s.players.forEach(function(p){inField[nkey(p.name)]=p.name;});
+  var perf={};
+  s0.archive.forEach(function(a){var st=archiveToState(a),c=compute(st),N=st.players.length;if(N<2)return;
+    st.events.forEach(function(ev){if(ev.kind==='pts'||isH2H(ev)||!hasResults(ev))return;var k=ekey(ev.name);perf[k]=perf[k]||{};
+      st.players.forEach(function(p){var x=c.R[ev.id][p.id];if(!x)return;var nk=nkey(p.name);(perf[k][nk]=perf[k][nk]||[]).push((x.pts-1)/(N-1));});});});
+  s.events.forEach(function(ev){var P=perf[ekey(ev.name)];if(!P)return;
+    var held=0;Object.keys(P).forEach(function(n){if(P[n].length>held)held=P[n].length;});var need=Math.min(2,held),best=null;
+    Object.keys(P).forEach(function(n){if(!inField[n]||P[n].length<need)return;var avg=P[n].reduce(function(a,b){return a+b;},0)/P[n].length;if(!best||avg>best.v)best={n:inField[n],v:avg};});
+    if(best)fb.event[ev.id]=best.n;});
+  return fb;
+}
+function fbPct(v){return v==null?'':' \u00b7 '+(v<0.01?'<1':Math.round(v*100))+'%';}
+function fbTag(kind,pct){
+  if(kind==='fav')return '<span class="fbtag fav">Favourite'+fbPct(pct)+'</span>';
+  if(kind==='out')return '<span class="fbtag">Outsider'+fbPct(pct)+'</span>';
+  if(kind==='spoon')return '<span class="fbtag">Spoon fav'+fbPct(pct)+'</span>';
+  return '';
+}
+function formBookLine(s,c,ts){
+  var fb=liveForm(preDay(s)),bits=[];
+  var tr=ranked(ts,function(t){return c.T[t.id].pts;}),trk={};tr.forEach(function(x){trk[x.it.id]=x.rank;});
+  var ps=sortPlayers(s,c),pr=ranked(ps,function(p){return c.P[p.id].pts;}),prk={};pr.forEach(function(x){prk[x.it.id]=x.rank;});
+  s.teams.forEach(function(t){var k=fb.team[t.id];if(!k)return;var r=trk[t.id];
+    if(k==='out')bits.push(r===1?'Outsiders '+esc(t.name)+' win the Cup':'Outsiders '+esc(t.name)+' finished '+ordinal(r));
+    else bits.push(r===1?'Favourites '+esc(t.name)+' delivered':'Favourites '+esc(t.name)+' finished '+ordinal(r));});
+  s.players.forEach(function(p){var k=fb.player[p.id];if(!k)return;var r=prk[p.id],n=esc(p.name);
+    if(k==='fav')bits.push(r===1?'Favourite '+n+' delivered':'Favourite '+n+' finished '+ordinal(r));
+    else bits.push(r===s.players.length?'Spoon favourite '+n+' took the spoon':'Spoon favourite '+n+' finished '+ordinal(r));});
+  return bits.length?'<div class="crown-recs"><span class="lbl">The form book</span><ul>'+bits.map(function(b){return '<li>'+b+'</li>';}).join('')+'</ul></div>':'';
+}
+/* ---------- Live chances: simulate the rest of the day ----------
+   Each remaining event: performance = current Elo + the player's event adjustment (from the v9 workbook: his record at
+   that event vs his usual level, capped +/-80) + luck. Luck sd 195, scaled by event: darts 0.8, bowling 0.9,
+   minigolf 1.0, anything else (mystery events) 1.3. Places -> CC points (n down to 1).
+   Head-to-head events use the team's average rating and give each team's players its block of places.
+   Calibrated so the pre-day chances match the workbook (James ~19%, Michael ~18%, Team 1 ~63%). */
+var _lfCache={key:null,val:null};
+function liveForm(s){
+  var key=JSON.stringify([s.year,s.players,s.events]);
+  if(_lfCache.key===key)return _lfCache.val;
+  var c=compute(s),E=eloRun(s,false),P=s.players,N=P.length,out={player:{},team:{},pc:{},ps:{},tc:{}};
+  if(N<2){_lfCache={key:key,val:out};return out;}
+  var R=P.map(function(p){var v=E.R[nkey(p.name)];return v==null?ELO_START:v;});
+  var base=P.map(function(p){return c.P[p.id].pts;});
+  var teamIdx={};s.teams.forEach(function(t,i){teamIdx[t.id]=i;});
+  var tm=P.map(function(p){return teamIdx[p.team]!=null?teamIdx[p.team]:-1;});
+  var rem=s.events.filter(function(e){return !hasResults(e);});
+  var seed=0;for(var q=0;q<key.length;q++)seed=(seed*31+key.charCodeAt(q))>>>0;
+  function rnd(){seed=(seed+0x6D2B79F5)>>>0;var t=seed;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}
+  function gauss(){var u=rnd()||1e-9,v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+  var adj=s.eventAdj||{},LUCK={darts:0.8,bowling:0.9,minigolf:1};
+  function bonus(ev,i){var a=adj[ekey(ev.name)];if(!a)return 0;var v=a[nkey(P[i].name)];return v==null?0:v;}
+  var IT=rem.length?3000:1,SD=195,win=new Array(N).fill(0),last=new Array(N).fill(0),tw=new Array(s.teams.length).fill(0);
+  var idx=P.map(function(_,i){return i;});
+  var tAvg=s.teams.map(function(t,ti){var a=0,n=0;P.forEach(function(_,i){if(tm[i]===ti){a+=R[i];n++;}});return n?a/n:ELO_START;});
+  for(var it=0;it<IT;it++){
+    var tot=base.slice();
+    rem.forEach(function(ev){
+      if(isH2H(ev)){
+        var tp=tAvg.map(function(v,ti){return {ti:ti,v:v+gauss()*SD};}).sort(function(a,b){return b.v-a.v;}),slot=0;
+        tp.forEach(function(x){var ids=idx.filter(function(i){return tm[i]===x.ti;}),sum=0;for(var z=0;z<ids.length;z++)sum+=Math.max(N-slot-z,0);ids.forEach(function(i){tot[i]+=sum/ids.length;});slot+=ids.length;});
+      } else {
+        var lk=LUCK[ekey(ev.name)]||1.3;
+        var pf=idx.map(function(i){return {i:i,v:R[i]+bonus(ev,i)+gauss()*SD*lk};}).sort(function(a,b){return b.v-a.v;});
+        pf.forEach(function(x,k){tot[x.i]+=N-k;});
+      }
+    });
+    var hi=-1e9,lo=1e9;tot.forEach(function(v){if(v>hi)hi=v;if(v<lo)lo=v;});
+    var W=idx.filter(function(i){return tot[i]===hi;}),L=idx.filter(function(i){return tot[i]===lo;});
+    W.forEach(function(i){win[i]+=1/W.length;});L.forEach(function(i){last[i]+=1/L.length;});
+    var tt=s.teams.map(function(){return 0;});idx.forEach(function(i){if(tm[i]>=0)tt[tm[i]]+=tot[i];});
+    var th=Math.max.apply(null,tt),TW=[];tt.forEach(function(v,ti){if(v===th)TW.push(ti);});TW.forEach(function(ti){tw[ti]+=1/TW.length;});
+  }
+  P.forEach(function(p,i){out.pc[p.id]=win[i]/IT;out.ps[p.id]=last[i]/IT;});
+  s.teams.forEach(function(t,ti){out.tc[t.id]=tw[ti]/IT;});
+  function pick(map,ids,hiKind,loKind,store,loMap){
+    var vals=ids.map(function(id){return map[id];}),mx=Math.max.apply(null,vals);
+    if(mx>0&&vals.some(function(v){return v<mx;}))ids.forEach(function(id){if(map[id]===mx)store[id]=hiKind;});
+    if(loKind){var lv=ids.map(function(id){return loMap[id];}),lm=Math.max.apply(null,lv);
+      if(lm>0&&lv.some(function(v){return v<lm;}))ids.forEach(function(id){if(loMap[id]===lm&&!store[id])store[id]=loKind;});}
+  }
+  pick(out.pc,P.map(function(p){return p.id;}),'fav','spoon',out.player,out.ps);
+  var tids=s.teams.map(function(t){return t.id;});pick(out.tc,tids,'fav',null,out.team);
+  var tv=tids.map(function(id){return out.tc[id];}),tmn=Math.min.apply(null,tv),tmx=Math.max.apply(null,tv);
+  if(tmn<tmx)tids.forEach(function(id){if(out.tc[id]===tmn&&!out.team[id])out.team[id]='out';});
+  _lfCache={key:key,val:out};return out;
+}
+/* ---------- Home: latest result + up next carousel ---------- */
+var TROPHY='<svg class="trophy" width="17" height="17" viewBox="0 0 24 24" aria-label="Leader"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="#E0B21C" stroke="#8F6E05" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5H4v1.5A3.5 3.5 0 0 0 7.5 10M17 5h3v1.5A3.5 3.5 0 0 1 16.5 10" fill="none" stroke="#8F6E05" stroke-width="1.4" stroke-linecap="round"/><path d="M12 13v4M8.5 21h7M9.5 17h5v4h-5z" fill="#E0B21C" stroke="#8F6E05" stroke-width="1.3" stroke-linejoin="round"/></svg>';
+function snapStandings(s){
+  var c=compute(s),ts=sortTeams(s,c),ps=sortPlayers(s,c),tr={},pr={};
+  ranked(ts,function(t){return c.T[t.id].pts;}).forEach(function(x){tr[x.it.id]=x.rank;});
+  ranked(ps,function(p){return c.P[p.id].pts;}).forEach(function(x){pr[x.it.id]=x.rank;});
+  return {c:c,ts:ts,ps:ps,tr:tr,pr:pr};
+}
+function dayCards(s,c,ts){
+  var done=s.events.filter(hasResults),n=s.events.length,cards=[];
+  var fbE=formBook(s).event,pre=liveForm(preDay(s));
+  var now=snapStandings(s),ps=now.ps;
+  var lastEv=done.length?done[done.length-1]:null,nextEv=s.events.filter(function(e){return !hasResults(e);})[0]||null;
+  function pos(ev){return s.events.indexOf(ev)+1;}
+  if(lastEv){
+    var s0=clone(s),e0=evById(s0,lastEv.id);e0.scores={};if(e0.matches)e0.matches.forEach(function(m){m.res=null;m.sa='';m.sb='';});
+    var before=snapStandings(s0),r=c.R[lastEv.id],head,twist='',facts=[];
+    if(isH2H(lastEv)){var rows=h2hTable(lastEv,s.teams).rows,wt=rows.filter(function(x){return x.rank===1;}).map(function(x){return (teamOf(s,x.id)||NOTEAM).name;});
+      head=esc(lastEv.name)+': '+names(wt)+(wt.length>1?' share it':' win it');}
+    else{var win=s.players.filter(function(p){return r[p.id]&&r[p.id].place===1;});
+      head=esc(lastEv.name)+': '+names(win.map(function(p){return p.name;}))+(win.length>1?' share it':' wins')+(win.length&&isNum(r[win[0].id].score)?' with '+fmt(r[win[0].id].score):'');
+      if(win.length===1){var wid=win[0].id;
+        if(pre.player[wid]==='spoon')twist='The spoon favourite takes gold.';
+        else if(fbE[lastEv.id]===win[0].name)twist='The favourite delivers.';
+        else if(pre.player[wid]==='fav')twist='The pre-day favourite strikes.';}}
+    var t1=ts[0],t2=ts[1],lead=c.T[t1.id].pts,gap=t2?lead-c.T[t2.id].pts:0;
+    if(t2&&gap===0)facts.push('<b>Level at the top</b> on '+fmt(lead));
+    else if(before.tr[t1.id]!==1&&done.length>1)facts.push('<b>'+esc(t1.name)+'</b> take the lead, '+fmt(gap)+' clear');
+    else facts.push('<b>'+esc(t1.name)+'</b> '+(done.length>1?'stay top':'lead')+(t2?', '+fmt(gap)+' clear of '+esc(t2.name):''));
+    if(done.length>1){var best=null;ps.forEach(function(p){var d=(before.pr[p.id]||ps.length)-now.pr[p.id];if(d>0&&(!best||d>best.d))best={p:p,d:d};});
+      if(best)facts.push('Biggest climber: <b>'+esc(best.p.name)+'</b> ▲'+best.d);}
+    var bt=null;s.teams.forEach(function(t){var v=c.T[t.id].by[lastEv.id]||0;if(!bt||v>bt.v)bt={t:t,v:v};});
+    if(bt&&bt.v>0)facts.push('Best team this event: <b>'+esc(bt.t.name)+'</b> +'+fmt(bt.v));
+    cards.push('<section class="lucard latest"><span class="eyebrow">Latest result · event '+pos(lastEv)+' of '+n+'</span><h3>'+head+'</h3>'+(twist?'<p class="sub">'+twist+'</p>':'')+'<ul>'+facts.map(function(f){return '<li><span>'+f+'</span></li>';}).join('')+'</ul></section>');
+  }
+  if(nextEv){
+    var lines=[];
+    if(done.length){var a=ts[0],b=ts[1],g=b?c.T[a.id].pts-c.T[b.id].pts:0;
+      if(b)lines.push(g===0?'<b>'+esc(a.name)+'</b> and <b>'+esc(b.name)+'</b> are level at the top':'<b>'+esc(b.name)+'</b> need '+fmt(g)+' to take the lead');
+      var i1=ps[0],i2=ps[1];if(i1&&i2){var ig=c.P[i1.id].pts-c.P[i2.id].pts;lines.push(ig===0?'<b>'+esc(i1.name)+'</b> and <b>'+esc(i2.name)+'</b> are level in the individuals':'<b>'+esc(i1.name)+'</b> leads the individuals by '+fmt(ig)+' from '+esc(i2.name));}}
+    else{var ft=s.teams.filter(function(t){return pre.team[t.id]==='fav';})[0],fp=s.players.filter(function(p){return pre.player[p.id]==='fav';})[0];
+      if(ft)lines.push('Cup favourites: <b>'+esc(ft.name)+'</b> ('+Math.round(pre.tc[ft.id]*100)+'%)');
+      if(fp)lines.push('Champion favourite: <b>'+esc(fp.name)+'</b> ('+Math.round(pre.pc[fp.id]*100)+'%)');}
+    lines.push(fbE[nextEv.id]?'Favourite here: <b>'+esc(fbE[nextEv.id])+'</b>':'No history at this one, so it’s anyone’s game');
+    cards.push('<section class="lucard next"><span class="eyebrow">Up next · event '+pos(nextEv)+' of '+n+'</span><h3>'+esc(nextEv.name)+'</h3><p class="sub">'+fmtLabel(nextEv)+'</p><ul>'+lines.map(function(f){return '<li><span>'+f+'</span></li>';}).join('')+'</ul></section>');
+  }
+  if(!cards.length)return '';
+  if(cards.length===1)return '<div class="lu single">'+cards[0]+'</div>';
+  return '<div class="lu"><div class="lu-track" id="lu-track">'+cards.join('')+'</div><div class="lu-dots" role="tablist" aria-label="Cards">'+cards.map(function(_,i){return '<button class="lu-dot" data-act="lu-go" data-v="'+i+'" aria-label="Card '+(i+1)+'" aria-selected="'+(i===0)+'"></button>';}).join('')+'</div></div>';
+}
+/* Count points up from the last values this viewer saw */
+function animatePoints(){
+  var reduce=false;try{reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  var els=[].slice.call(APP.querySelectorAll('[data-anim]'));if(!els.length)return;
+  var prev={};try{prev=JSON.parse(ls.get('cc-seen')||'{}')||{};}catch(e){prev={};}
+  var now={};els.forEach(function(el){now[el.getAttribute('data-anim')]=parseFloat(el.getAttribute('data-val'));});
+  try{ls.set('cc-seen',JSON.stringify(now));}catch(e){}
+  if(reduce||!Object.keys(prev).length)return;
+  var moving=els.filter(function(el){var k=el.getAttribute('data-anim');return prev[k]!=null&&prev[k]!==now[k];});
+  if(!moving.length)return;
+  moving.forEach(function(el){var k=el.getAttribute('data-anim');el.textContent=fmt(prev[k]);
+    var bar=el.getAttribute('data-bar')?APP.querySelector('[data-barfor="'+k+'"]'):null;
+    if(bar){var w=bar.style.width,pw=el.getAttribute('data-pw');bar.style.transition='none';bar.style.width=pw||'0%';bar.getBoundingClientRect();bar.style.transition='width .9s cubic-bezier(.2,.7,.2,1)';bar.style.width=w;}});
+  var t0=null;function step(t){if(t0==null)t0=t;var k=Math.min(1,(t-t0)/900),e=1-Math.pow(1-k,3);
+    moving.forEach(function(el){var key=el.getAttribute('data-anim'),a=prev[key],b=now[key];el.textContent=k<1?String(Math.round(a+(b-a)*e)):fmt(b);});
+    if(k<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+function crownBanner(s,c,ts){
+  var top=ts.length?c.T[ts[0].id].pts:0,tw=ts.filter(function(t){return c.T[t.id].pts===top;});
+  var ps=sortPlayers(s,c),b=ps[0]&&c.P[ps[0].id];
+  var ch=b?ps.filter(function(p){return c.P[p.id].pts===b.pts;}):[];
+  var recs=recordsSet(s);
+  var h='<section class="crown" style="--tc:'+esc(tw[0]?tw[0].color:'#C9971C')+'"><p class="eyebrow">Final result · '+esc(s.year)+'</p>'
+    +'<h2 class="crown-title">'+names(tw.map(function(t){return t.name;}))+(tw.length>1?' share':' win')+' the Cup</h2>'
+    +tw.map(function(t){return '<p class="crown-who">'+names(s.players.filter(function(p){return p.team===t.id;}).map(function(p){return p.name;}))+' · <b class="num">'+fmt(c.T[t.id].pts)+'</b> pts</p>';}).join('')
+    +(ch.length?'<div class="crown-champ"><span class="lbl">Champion C.U.N.T</span><span class="crown-name">'+names(ch.map(function(p){return p.name;}))+'</span><span class="num">'+fmt(c.P[ch[0].id].pts)+' pts</span></div>':'');
+  h+=formBookLine(s,c,ts);
+  if(recs.length)h+='<div class="crown-recs"><span class="lbl">Records broken</span><ul>'+recs.map(function(r){return '<li><b>'+esc(r.title)+':</b> '+names(r.who)+' <span class="num">'+fmt(r.v)+'</span>'+(r.prev!=null?' <span class="dash">(was '+fmt(r.prev)+')</span>':'')+'</li>';}).join('')+'</ul></div>';
+  return h+'</section>';
+}
+/* ---------- Power ranking (Elo) ----------
+   Same method as the track-record workbook (v9): individual events only - team events are left out because a
+   partner can help or hinder. Every event is a round robin - you "beat" everyone you finished ahead of. Rating moves by K x (actual - expected) / (players - 1). Start 1500, K 48. */
+var ELO_START=1500,ELO_K=48;
+function eloRun(s,dropLast){
+  var seq=[],cy=String(s.year),hasCur=(s.archive||[]).some(function(a){return String(a.year)===cy;});
+  (s.archive||[]).slice().sort(function(a,b){return (parseInt(a.year,10)||0)-(parseInt(b.year,10)||0);}).forEach(function(a){
+    var st=archiveToState(a),c=compute(st);
+    st.events.forEach(function(ev){if(!hasResults(ev)||ev.kind==='pts'||isH2H(ev))return;var en=[];st.players.forEach(function(p){var x=c.R[ev.id][p.id];if(x)en.push({n:p.name,v:x.pts});});seq.push({year:String(a.year),ev:ev.name,en:en});});
+  });
+  if(!hasCur){var c2=compute(s);s.events.forEach(function(ev){if(!hasResults(ev)||ev.kind==='pts'||isH2H(ev))return;var en=[];s.players.forEach(function(p){var x=c2.R[ev.id][p.id];if(x)en.push({n:p.name,v:x.pts});});seq.push({year:cy,ev:ev.name,en:en});});}
+  if(dropLast)seq=seq.slice(0,-1);
+  var R={},H={},N={},disp={};
+  seq.forEach(function(e,k){
+    e.en.forEach(function(x){var key=nkey(x.n);disp[key]=x.n;if(R[key]==null){R[key]=ELO_START;H[key]=[{k:k-1,v:ELO_START}];N[key]=0;}});
+    var n=e.en.length,nw={};if(n<2)return;
+    e.en.forEach(function(x){var a=nkey(x.n),act=0,exp=0;
+      e.en.forEach(function(y){if(y===x)return;var b=nkey(y.n);act+=x.v>y.v?1:x.v===y.v?0.5:0;exp+=1/(1+Math.pow(10,(R[b]-R[a])/400));});
+      nw[a]=R[a]+ELO_K*(act-exp)/(n-1);});
+    Object.keys(nw).forEach(function(a){R[a]=nw[a];H[a].push({k:k,v:nw[a],label:e.ev+' '+e.year});N[a]++;});
+  });
+  return {R:R,H:H,N:N,disp:disp,seq:seq,cy:cy};
+}
+function powerData(s){
+  var E=eloRun(s,false),seq=E.seq,cy=E.cy;
+  var curStart=-1;seq.forEach(function(e,k){if(e.year===cy&&curStart<0)curStart=k;});
+  var onDay=curStart>=0;
+  var lastY=null;seq.forEach(function(e){if(e.year!==cy)lastY=e.year;});
+  var yStart=-1,yEnd=-1;seq.forEach(function(e,k){if(e.year===lastY){if(yStart<0)yStart=k;yEnd=k;}});
+  function at(key,k){var h=E.H[key];if(!h)return null;var v=null;h.forEach(function(p){if(p.k<=k)v=p.v;});return v;}
+  var prevRank=null;
+  if(onDay){var P=eloRun(s,true);prevRank=P.R;}
+  var field={};s.players.forEach(function(p){field[nkey(p.name)]=p;});
+  var keys=Object.keys(E.R);s.players.forEach(function(p){var k=nkey(p.name);if(keys.indexOf(k)<0)keys.push(k);});
+  var rows=keys.map(function(key){
+    var p=field[key],r=E.R[key]!=null?E.R[key]:ELO_START,ch=null,chLabel='';
+    if(onDay){var b=at(key,curStart-1);if(b==null&&E.H[key])b=ELO_START;if(b!=null&&E.H[key]){ch=r-b;chLabel=s.final?'in '+cy:'today';}}
+    else if(lastY&&E.H[key]){var b2=at(key,yStart-1),a2=at(key,yEnd);var played=E.H[key].some(function(q){return q.k>=yStart&&q.k<=yEnd;});
+      if(played){ch=a2-(b2==null?ELO_START:b2);chLabel='in '+lastY;}else chLabel='Missed '+lastY;}
+    return {key:key,name:p?p.name:E.disp[key],team:p?p.team:null,inField:!!p,r:r,n:E.N[key]||0,h:E.H[key]||[],ch:ch,chLabel:chLabel};
+  });
+  rows.sort(function(a,b){return b.r-a.r||a.name.localeCompare(b.name);});
+  var pr=null;
+  if(prevRank){var pl=rows.map(function(x){return {key:x.key,v:prevRank[x.key]!=null?prevRank[x.key]:ELO_START};}).sort(function(a,b){return b.v-a.v;});pr={};pl.forEach(function(x,i){pr[x.key]=i+1;});}
+  var lo=ELO_START,hi=ELO_START;rows.forEach(function(x){x.h.forEach(function(q){if(q.v<lo)lo=q.v;if(q.v>hi)hi=q.v;});});
+  return {rows:rows,seq:seq,onDay:onDay,prev:pr,lo:Math.floor((lo-10)/10)*10,hi:Math.ceil((hi+10)/10)*10};
+}
+function pwChange(x){
+  if(x.ch==null)return '<small class="mut">'+(x.n?esc(x.chLabel):'Starting rating')+'</small>';
+  var r=Math.round(x.ch);return '<small class="'+(r>=0?'up':'down')+'">'+(r>=0?'+':'−')+Math.abs(r)+' '+esc(x.chLabel)+'</small>';
+}
+function pwArrow(x){
+  if(x.ch==null)return '<small class="mut">–</small>';var r=Math.round(x.ch);
+  return '<small class="'+(r>=0?'up':'down')+'">'+(r>=0?'+':'−')+Math.abs(r)+'</small>';
+}
+function pwSpark(x,col,D,w,h){
+  if(!x.h.length)return '<svg width="'+w+'" height="'+h+'" aria-hidden="true"></svg>';
+  var n=Math.max(D.seq.length,1);function X(k){return 2+(k+1)/n*(w-6);}function Y(v){return h-3-(v-D.lo)/(D.hi-D.lo)*(h-6);}
+  var d=x.h.map(function(q,i){return (i?'L':'M')+X(q.k).toFixed(1)+' '+Y(q.v).toFixed(1);}).join(' '),e=x.h[x.h.length-1],y0=Y(ELO_START).toFixed(1);
+  return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" aria-hidden="true"><line x1="0" x2="'+w+'" y1="'+y0+'" y2="'+y0+'" stroke="var(--line)" stroke-dasharray="2 3"/>'
+    +'<path d="'+d+'" fill="none" stroke="'+esc(col)+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(e.k).toFixed(1)+'" cy="'+Y(e.v).toFixed(1)+'" r="3" fill="'+esc(col)+'" stroke="var(--surface)" stroke-width="1.5"/></svg>';
+}
+function pwChart(x,col,D){
+  var W=340,Hh=170,L=36,R=44,T=10,B=22,n=Math.max(D.seq.length,1);
+  function X(k){return L+(k+1)/n*(W-L-R);}function Y(v){return T+(1-(v-D.lo)/(D.hi-D.lo))*(Hh-T-B);}
+  var g='<svg class="pw-chart" viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="'+esc(x.name)+' rating after each event">';
+  for(var v=Math.ceil(D.lo/100)*100;v<=D.hi;v+=100){var y=Y(v).toFixed(1);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"'+(v===ELO_START?' stroke-dasharray="3 3"':'')+'/><text x="'+(L-6)+'" y="'+y+'" dy="4" text-anchor="end" class="pw-ax">'+v+'</text>';}
+  var seen={};D.seq.forEach(function(e,k){if(seen[e.year])return;seen[e.year]=1;var xx=X(k-1).toFixed(1);g+='<line x1="'+xx+'" x2="'+xx+'" y1="'+T+'" y2="'+(Hh-B)+'" stroke="var(--line)"/><text x="'+(+xx+3)+'" y="'+(Hh-6)+'" class="pw-ax">'+esc(e.year)+'</text>';});
+  D.rows.forEach(function(o){if(o.key===x.key||!o.h.length)return;g+='<path d="'+o.h.map(function(q,i){return (i?'L':'M')+X(q.k).toFixed(1)+' '+Y(q.v).toFixed(1);}).join(' ')+'" fill="none" stroke="var(--muted)" stroke-opacity=".28" stroke-width="1.2"/>';});
+  if(x.h.length){
+    g+='<path d="'+x.h.map(function(q,i){return (i?'L':'M')+X(q.k).toFixed(1)+' '+Y(q.v).toFixed(1);}).join(' ')+'" fill="none" stroke="'+esc(col)+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    x.h.forEach(function(q){if(!q.label)return;g+='<circle cx="'+X(q.k).toFixed(1)+'" cy="'+Y(q.v).toFixed(1)+'" r="7" fill="transparent"><title>'+esc(q.label)+': '+Math.round(q.v)+'</title></circle>';});
+    var e=x.h[x.h.length-1];g+='<circle cx="'+X(e.k).toFixed(1)+'" cy="'+Y(e.v).toFixed(1)+'" r="4.5" fill="'+esc(col)+'" stroke="var(--surface)" stroke-width="2"/><text x="'+(X(e.k)+8).toFixed(1)+'" y="'+Y(e.v).toFixed(1)+'" dy="4" class="pw-end">'+Math.round(e.v)+'</text>';
+  }
+  return g+'</svg>';
+}
+function pwColor(s,x){var t=x.team?teamOf(s,x.team):null;return t?t.color:'#8A8F98';}
+function powerCard(s){
+  var D=powerData(s),top=D.rows.filter(function(x){return x.inField;}).slice(0,5);
+  var h='<section class="pcard"><div class="sec-head"><h2>Power ranking</h2><button class="seeall" data-act="tab" data-v="power">See all '+D.rows.filter(function(x){return x.inField;}).length+' →</button></div>'
+    +'<p class="sec-note">Elo rating from every individual event since 2021, with the change '+(D.onDay?(s.final?'in '+esc(s.year):'today'):'in the last Cup')+'.</p><div class="plist2">';
+  top.forEach(function(x,i){var col=pwColor(s,x);
+    h+='<button class="pa" data-act="pw-go" data-v="'+esc(x.key)+'"><span class="prk num">'+(i+1)+'</span><span class="dot" style="--tc:'+esc(col)+'"></span><span class="pn">'+esc(x.name)+'</span>'+pwSpark(x,col,D,70,24)+'<b class="num">'+Math.round(x.r)+'</b>'+pwArrow(x)+'</button>';});
+  return h+'</div></section>';
+}
+function renderPower(s){
+  var D=powerData(s),rows=D.rows.filter(function(x){return ui.pwAll||x.inField;}),extra=D.rows.length-D.rows.filter(function(x){return x.inField;}).length;
+  var h='<section><h2>Power ranking</h2><p class="sec-note">Elo rating from every individual event since 2021 (team events don\u2019t count). Finish ahead of higher-rated players and you climb faster. Everyone starts at 1500. Tap a player for their history.</p>';
+  if(extra>0)h+='<div class="yearbar"><button class="tab" data-act="pw-scope" data-v="field" aria-selected="'+!ui.pwAll+'">'+esc(s.year)+' field</button><button class="tab" data-act="pw-scope" data-v="all" aria-selected="'+!!ui.pwAll+'">Everyone</button></div>';
+  h+='<div class="plist">';
+  rows.forEach(function(x,i){var col=pwColor(s,x),t=x.team?teamOf(s,x.team):null,open=ui.pw===x.key,rank=i+1;
+    var mv=D.prev&&D.prev[x.key]!=null?mvHtml(D.prev[x.key],rank):'';
+    h+='<button class="pr'+(open?' open':'')+'" style="--tc:'+esc(col)+'" data-act="pw-open" data-v="'+esc(x.key)+'" aria-expanded="'+open+'"><span class="prk num">'+rank+mv+'</span>'
+      +'<span class="pnm"><span class="pl-name">'+esc(x.name)+'</span>'
+      +(t?'<span class="chip" style="--tc:'+esc(t.color)+'"><span class="dot"></span>'+esc(t.name)+'</span>':'<span class="chip">Not playing '+esc(s.year)+'</span>')
+      +(x.n===0?'<small class="mut few">New this year</small>':x.n<6?'<small class="mut few">Few events so far</small>':'')+'</span>'
+      +'<span class="psp">'+pwSpark(x,col,D,84,28)+'</span><span class="prt"><b class="num">'+Math.round(x.r)+'</b>'+pwChange(x)+'</span></button>';
+    if(open){
+      if(!x.h.length)h+='<div class="pdetail" style="--tc:'+esc(col)+'"><p class="sec-note">No events yet. '+esc(x.name.split(' ')[0])+' starts on 1500 and moves after the first event.</p></div>';
+      else{var best=null;for(var j=1;j<x.h.length;j++){var dl=x.h[j].v-x.h[j-1].v;if(best==null||dl>best.d)best={d:dl,l:x.h[j].label};}
+        var pk=Math.max.apply(null,x.h.map(function(q){return q.v;}));
+        h+='<div class="pdetail" style="--tc:'+esc(col)+'">'+pwChart(x,col,D)+'<div class="pstats"><div><span class="lbl">Peak</span><b class="num">'+Math.round(pk)+'</b></div><div><span class="lbl">Events rated</span><b class="num">'+x.n+'</b></div>'
+          +(best?'<div><span class="lbl">Best jump</span><b class="num">'+(best.d>=0?'+':'−')+Math.abs(Math.round(best.d))+'</b><small>'+esc(best.l)+'</small></div>':'')+'</div></div>';}
+    }
+  });
+  return h+'</div>'+(D.prev?'<p class="sec-note" style="margin-top:8px">Arrows next to the rank show places gained or lost after the last event.</p>':'')+'</section>';
+}
+function renderStandings(s,c,ts,live){
+  var mv=live?movers(s,c,ts):null,fb=(live&&!s.final)?liveForm(s):{player:{},team:{},pc:{},ps:{},tc:{}};
+  var maxPts=Math.max.apply(null,ts.map(function(t){return c.T[t.id].pts;}).concat([1]));
+  var tr=ranked(ts,function(t){return c.T[t.id].pts;}),lead=ts.length?c.T[ts[0].id].pts:0;
+  var h='<div class="grid2"><section><h2>Teams</h2><div class="teams">';
+  tr.forEach(function(x){
+    var t=x.it,pts=c.T[t.id].pts;
+    var members=s.players.filter(function(p){return p.team===t.id;}).map(function(p){return esc(p.name.split(' ')[0]);}).join(', ');
+    var gap=pts===lead?(lead>0?(live?'Leading':'Winners'):''):fmt(lead-pts)+' behind';
+    h+='<div class="team'+(x.rank===1&&lead>0?' lead':'')+'" style="--tc:'+esc(t.color)+'"><div class="rk num">'+rankLabel(x.rank,tr)+(mv?mvHtml(mv.T[t.id],x.rank):'')+'</div>'
+      +'<div style="min-width:0"><div class="team-name">'+esc(t.name)+(live&&x.rank===1&&lead>0?TROPHY:'')+fbTag(fb.team[t.id],fb.tc?fb.tc[t.id]:null)+'</div><div class="team-members">'+(members||'No players')+'</div><div class="bar"><i'+(live?' data-barfor="t:'+esc(t.id)+'"':'')+' style="width:'+(pts/maxPts*100).toFixed(1)+'%"></i></div></div>'
+      +'<div class="pts"><b class="num"'+(live?' data-anim="t:'+esc(t.id)+'" data-val="'+pts+'" data-bar="1"':'')+'>'+fmt(pts)+'</b><small>'+gap+'</small></div></div>';
+  });
+  h+='</div>';
+  var dayOn=live&&s.events.some(hasResults);
+  if(live&&!dayOn)h+=powerCard(s);
+  h+='</section>';
+  var ps=sortPlayers(s,c);
+  if(live&&!s.events.some(hasResults)&&fb.pc)ps.sort(function(a,b){return (fb.pc[b.id]||0)-(fb.pc[a.id]||0)||a.name.localeCompare(b.name);});
+  var pr=ranked(ps,function(p){return c.P[p.id].pts;});
+  h+='<section><h2>Individuals</h2><div class="tbl-wrap"><table><thead><tr><th>#</th><th>Player</th><th>Medals</th><th class="r">Pts</th></tr></thead><tbody>';
+  var shown=ui.allInd?pr:pr.filter(function(x,i){return i<5||(x.rank<=5&&c.P[x.it.id].pts>0);}),hidden=pr.length-shown.length;
+  shown.forEach(function(x){var p=x.it,q=c.P[p.id],t=teamOf(s,p.team)||NOTEAM;
+    var top=q.pts>0&&x.rank<=3?' rk'+x.rank:'';
+    h+='<tr'+(live&&q.pts>0&&x.rank===1?' class="yjrow"':'')+'><td class="rkc num'+top+'">'+rankLabel(x.rank,pr)+(mv?mvHtml(mv.P[p.id],x.rank):'')+'</td><td><div class="pl-name">'+esc(p.name)+(live&&q.pts>0&&x.rank===1?TROPHY:'')+'</div>'+teamChip(t)+fbTag(fb.player[p.id],fb.player[p.id]==='spoon'?(fb.ps&&fb.ps[p.id]):(fb.pc&&fb.pc[p.id]))+'</td><td>'+medalsHtml(q)+'</td><td class="r bigpts num"'+(live?' data-anim="p:'+esc(p.id)+'" data-val="'+q.pts+'"':'')+'>'+fmt(q.pts)+'</td></tr>';});
+  h+='</tbody></table></div>';
+  if(hidden>0||ui.allInd&&pr.length>5) h+='<button class="btn small ghost more-btn" data-act="toggle-ind" aria-expanded="'+ui.allInd+'">'+(ui.allInd?'Show top 5 only':'Show all '+pr.length+' players')+'</button>';
+  h+=(mv?'<p class="sec-note" style="margin-top:8px">Arrows show places gained or lost after '+esc(mv.after)+'.</p>':'')+'</section></div>';
+  if(dayOn)h+=powerCard(s);
+  h+=raceChart(s,c,ts);
+  if(s.events.length){
+    h+='<section><h2>Team points by event</h2><div class="tbl-wrap"><table><thead><tr><th>Team</th>'+s.events.map(function(e){return '<th class="r">'+esc(e.name)+'</th>';}).join('')+'<th class="r">Total</th></tr></thead><tbody>';
+    ts.forEach(function(t){h+='<tr><td>'+teamChip(t,true)+'</td>'+s.events.map(function(e){var v=c.T[t.id].by[e.id];return '<td class="r num">'+(v==null?'<span class="dash">–</span>':fmt(v))+'</td>';}).join('')+'<td class="r bigpts num">'+fmt(c.T[t.id].pts)+'</td></tr>';});
+    h+='</tbody></table></div></section>';
+  }
+  return h;
+}
+function raceChart(s,c,ts){
+  var evs=s.events.filter(hasResults); if(!evs.length) return '';
+  var W=680,H=300,L=44,R=130,T=18,B=44,pw=W-L-R,ph=H-T-B,n=evs.length;
+  var series=ts.map(function(t){var acc=0,pts=[0];evs.forEach(function(e){acc+=c.T[t.id].by[e.id]||0;pts.push(acc);});return {t:t,pts:pts};});
+  var max=1; series.forEach(function(sr){sr.pts.forEach(function(v){if(v>max)max=v;});});
+  var raw=max/4,mag=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)),step=mag;
+  [1,2,2.5,5,10].some(function(m){if(m*mag>=raw){step=m*mag;return true;}return false;});
+  var top=Math.ceil(max/step)*step;
+  function X(i){return L+i*pw/n;} function Y(v){return T+ph-v/top*ph;}
+  var g='<svg class="rc" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Team totals after each event">';
+  for(var v=0;v<=top+1e-9;v+=step){var y=Y(v).toFixed(1);g+='<line class="rc-grid" x1="'+L+'" x2="'+(L+pw)+'" y1="'+y+'" y2="'+y+'"/><text class="rc-lbl" x="'+(L-8)+'" y="'+y+'" dy="4" text-anchor="end">'+fmt(v)+'</text>';}
+  for(var i=0;i<=n;i++){var x=X(i).toFixed(1),nm=i===0?'Start':evs[i-1].name;if(nm.length>11)nm=nm.slice(0,10)+'…';
+    g+='<line class="rc-tick" x1="'+x+'" x2="'+x+'" y1="'+T+'" y2="'+(T+ph)+'"/><text class="rc-lbl" x="'+x+'" y="'+(T+ph+18)+'" text-anchor="middle">'+esc(nm)+'</text>';}
+  series.forEach(function(sr){
+    var d=sr.pts.map(function(v,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);}).join(' ');
+    g+='<path d="'+d+'" fill="none" stroke="'+esc(sr.t.color)+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+    sr.pts.forEach(function(v,i){if(!i)return;g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="'+(i===n?5:3.5)+'" fill="'+esc(sr.t.color)+'" class="rc-pt"><title>'+esc(sr.t.name)+' after '+esc(evs[i-1].name)+': '+fmt(v)+'</title></circle>';});
+  });
+  var ends=series.map(function(sr){var v=sr.pts[n];return {t:sr.t,v:v,y:Y(v)};}).sort(function(a,b){return a.y-b.y;});
+  for(var k=1;k<ends.length;k++){if(ends[k].y-ends[k-1].y<16)ends[k].y=ends[k-1].y+16;}
+  var over=ends.length?ends[ends.length-1].y-(T+ph):0; if(over>0)ends.forEach(function(e){e.y-=over;});
+  ends.forEach(function(e){g+='<text class="rc-end" x="'+(L+pw+10)+'" y="'+e.y.toFixed(1)+'" dy="4"><tspan style="fill:'+esc(e.t.color)+'">●</tspan> '+esc(e.t.name.length>12?e.t.name.slice(0,11)+'…':e.t.name)+' <tspan class="rc-v">'+fmt(e.v)+'</tspan></text>';});
+  g+='</svg>';
+  return '<section><h2>Race to the Cup</h2><p class="sec-note">Each team’s running total after every event.</p><div class="tbl-wrap rc-wrap">'+g+'</div></section>';
+}
+function podiumHtml(s,r,ev){
+  if(ev&&isH2H(ev)){
+    var ms=ev.matches||[],pl=ms.filter(function(m){return m.res;}).length;
+    if(!hasResults(ev))return '<div class="empty">'+(pl?pl+' of '+ms.length+' matches played':'No results yet')+'</div>';
+    var rows=h2hTable(ev,s.teams).rows.filter(function(x){return x.rank<=3;});
+    return '<div class="podium">'+rows.map(function(x){var t=teamOf(s,x.id)||NOTEAM;return '<div><span class="medal '+(x.rank===1?'g':x.rank===2?'s':'b')+'">'+x.rank+'</span><span class="dot" style="--tc:'+esc(t.color)+'"></span>'+esc(t.name)+' <span class="dash num">'+fmt(x.pts)+' pts</span></div>';}).join('')+'</div>';
+  }
+  var ents=[];s.players.forEach(function(p){var x=r[p.id];if(x&&x.place<=3){var t=teamOf(s,p.team)||NOTEAM;ents.push({name:p.name,color:t.color,pl:x.place,score:x.score});}});
+  ents.sort(function(a,b){return a.pl-b.pl||a.name.localeCompare(b.name);});
+  return ents.length?'<div class="podium">'+ents.map(function(e){return '<div><span class="medal '+(e.pl===1?'g':e.pl===2?'s':'b')+'">'+e.pl+'</span><span class="dot" style="--tc:'+esc(e.color)+'"></span>'+esc(e.name)+' <span class="dash num">'+fmt(e.score)+'</span></div>';}).join('')+'</div>':'<div class="empty">No results yet</div>';
+}
+function fmtLabel(ev){return ev.kind==='pts'?'Team event':isH2H(ev)?'Head to head \u00b7 teams':ev.low?'Lowest score wins':'Highest score wins';}
+function addEventForm(where){
+  return '<form class="row add-ev" data-form="add-event"><input type="text" id="new-ev-'+where+'" class="grow" placeholder="New event name, e.g. Pool" autocomplete="off" aria-label="New event name">'
+    +'<select class="place" id="new-ev-dir-'+where+'" aria-label="How the event is won"><option value="high">Highest score wins</option><option value="low">Lowest score wins</option><option value="h2h">Head to head (teams)</option></select>'
+    +'<button class="btn small primary" type="submit">Add event</button></form>';
+}
+function renderEvents(s,c){
+  var fbE=formBook(s).event;
+  var firstOpen=null;s.events.forEach(function(e){if(!firstOpen&&!hasResults(e))firstOpen=e.id;});
+  var h='<section><h2>Events</h2>'+(ui.unlocked&&!s.final?addEventForm('ev'):'')+(ui.unlocked&&s.final?'<p class="notice">'+esc(s.year)+' is final, so scores are locked. Reopen scoring in Setup to change them.</p>':'');
+  if(!s.events.length)return h+'<p class="empty">No events yet. Unlock scoring to add the first one.</p></section>';
+  h+='<p class="sec-note">In running order. Tap an event to see '+(ui.unlocked?'and enter its scores, or use the arrows to change the order.':'its scores.')+'</p><div class="events">';
+  s.events.forEach(function(ev,i){
+    var dn=hasResults(ev),pill=dn?'<span class="pill done">Results in</span>':inProgress(ev)?'<span class="pill next">In progress</span>':(ev.id===firstOpen?'<span class="pill next">Up next</span>':'<span class="pill">To play</span>');
+    var card='<button class="ev" data-act="open-ev" data-v="'+esc(ev.id)+'"><div class="ev-top"><span class="ev-no num">'+(i+1)+'</span><span class="ev-name">'+esc(ev.name)+'</span>'+pill+'</div>'
+      +'<span class="rec-by">'+fmtLabel(ev)+'</span>'+(fbE[ev.id]?'<span class="favl">Favourite: <b>'+esc(fbE[ev.id])+'</b></span>':'')+podiumHtml(s,c.R[ev.id],ev)+'</button>';
+    if(ui.unlocked&&!s.final){
+      card='<div class="ev-wrap">'+card+'<div class="ev-move"><span class="tapnote">Order</span>'
+        +'<button class="btn small ghost" data-act="ev-up" data-v="'+esc(ev.id)+'"'+(i===0?' disabled':'')+' aria-label="Move '+esc(ev.name)+' earlier">\u2191 Earlier</button>'
+        +'<button class="btn small ghost" data-act="ev-down" data-v="'+esc(ev.id)+'"'+(i===s.events.length-1?' disabled':'')+' aria-label="Move '+esc(ev.name)+' later">\u2193 Later</button></div></div>';
+    }
+    h+=card;
+  });
+  return h+'</div></section>';
+}
+function renderH2H(s,c,ev){
+  var ed=ui.unlocked&&!s.final,ms=ev.matches||[],played=ms.filter(function(m){return m.res;}).length,mp=ev.mp||{w:3,d:1,l:0};
+  var h='<section><div class="detail-head"><button class="btn small ghost" data-act="back">← All events</button><h2>'+esc(ev.name)+'</h2><span class="pill">Head to head</span></div>';
+  if(ed){
+    h+='<div class="edit-tools"><span class="tapnote">Tap the winner of each match, or Draw. Scores are optional: type both and the result fills in.</span></div>'
+      +'<div class="mp-set"><span class="lbl">Match points</span>'
+      +[['w','Win'],['d','Draw'],['l','Loss']].map(function(o){return '<label>'+o[1]+' <input type="text" inputmode="decimal" id="mp-'+o[0]+'" data-mp="'+o[0]+'" value="'+esc(mp[o[0]])+'"></label>';}).join('')
+      +(ui.confirm==='rebuild'?'<button class="btn small danger" data-act="rebuild-yes">Redo fixtures and clear results?</button><button class="btn small ghost" data-act="confirm-no">Keep</button>':'<button class="btn small ghost" data-act="rebuild">Redo fixtures</button>')+'</div>';
+  } else {
+    h+='<p class="sec-note">Every team plays every other team once. Win '+fmt(+mp.w)+', draw '+fmt(+mp.d)+', loss '+fmt(+mp.l)+' match points.</p>';
+  }
+  h+='<h3 class="sub">Table</h3><div id="h2h-table">'+h2hTableHtml(s,ev)+'</div>';
+  h+='<h3 class="sub">Matches <span class="dash" id="h2h-count">· '+played+' of '+ms.length+' played</span></h3><div class="matches">';
+  var round=0;
+  ms.forEach(function(m,i){
+    if(m.round!==round){round=m.round;h+='<div class="m-round">Round '+round+'</div>';}
+    h+=matchHtml(s,m,i,ed);
+  });
+  if(!ms.length)h+='<p class="empty">No fixtures yet.'+(ed?' Tap Redo fixtures to create them.':'')+'</p>';
+  return h+'</div></section>';
+}
+function matchHtml(s,m,i,ed){
+  var A=teamOf(s,m.a)||NOTEAM,B=teamOf(s,m.b)||NOTEAM;
+  if(ed){
+    return '<div class="match" id="m-'+i+'"><div class="m-row"><span class="m-team">'+teamChip(A,true)+'</span>'
+      +'<input class="score ms" type="text" inputmode="decimal" autocomplete="off" id="ms-'+i+'-a" data-ms="'+i+'" data-side="a" value="'+esc(m.sa)+'" aria-label="'+esc(A.name)+' score">'
+      +'<span class="m-v">v</span>'
+      +'<input class="score ms" type="text" inputmode="decimal" autocomplete="off" id="ms-'+i+'-b" data-ms="'+i+'" data-side="b" value="'+esc(m.sb)+'" aria-label="'+esc(B.name)+' score">'
+      +'<span class="m-team r">'+teamChip(B,true)+'</span></div>'
+      +'<div class="m-res dir" role="group" aria-label="Result">'
+      +'<button data-act="mres" data-v="'+i+':a" aria-pressed="'+(m.res==='a')+'">'+esc(A.name)+' win</button>'
+      +'<button data-act="mres" data-v="'+i+':d" aria-pressed="'+(m.res==='d')+'">Draw</button>'
+      +'<button data-act="mres" data-v="'+i+':b" aria-pressed="'+(m.res==='b')+'">'+esc(B.name)+' win</button></div></div>';
+  }
+  var sc=isNum(m.sa)&&isNum(m.sb)?'<span class="m-score num">'+fmt(+m.sa)+' – '+fmt(+m.sb)+'</span>':'<span class="m-v">v</span>';
+  var out=!m.res?'<span class="dash">To play</span>':m.res==='d'?'Draw':esc((m.res==='a'?A:B).name)+' win';
+  return '<div class="match ro'+(m.res?'':' pending')+'"><div class="m-row"><span class="m-team'+(m.res==='a'?' won':'')+'">'+teamChip(A,true)+'</span>'+sc+'<span class="m-team r'+(m.res==='b'?' won':'')+'">'+teamChip(B,true)+'</span></div><div class="m-out">'+out+'</div></div>';
+}
+function h2hTableHtml(s,ev){
+  var tb=h2hTable(ev,s.teams),done=hasResults(ev),r=done?evalEvent(ev,s):{},cnt={};
+  tb.rows.forEach(function(x){cnt[x.rank]=(cnt[x.rank]||0)+1;});
+  var h='<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Team</th><th class="c">P</th><th class="c">W</th><th class="c">D</th><th class="c">L</th>'+(tb.anyScore?'<th class="c">+/−</th>':'')+'<th class="r">Pts</th>'+(done?'<th class="r">Cup pts</th>':'')+'</tr></thead><tbody>';
+  tb.rows.forEach(function(x){var t=teamOf(s,x.id)||NOTEAM,cup=0;
+    if(done)s.players.forEach(function(p){if(p.team===x.id&&r[p.id])cup+=r[p.id].pts;});
+    h+='<tr><td class="rkc num">'+(cnt[x.rank]>1?'=':'')+x.rank+'</td><td>'+teamChip(t,true)+'</td><td class="c num">'+x.p+'</td><td class="c num">'+x.w+'</td><td class="c num">'+x.d+'</td><td class="c num">'+x.l+'</td>'
+      +(tb.anyScore?'<td class="c num">'+(x.diff>0?'+':'')+fmt(x.diff)+'</td>':'')+'<td class="r bigpts num">'+fmt(x.pts)+'</td>'+(done?'<td class="r num">'+fmt(cup)+'</td>':'')+'</tr>';});
+  h+='</tbody></table></div>';
+  h+='<p class="sec-note" style="margin-top:8px">'+(done?'Final. Each team’s players take its block of places, so the winners share 1st–'+Math.max(1,s.players.filter(function(p){return p.team===tb.rows[0].id;}).length)+' and the Cup points that come with them.':'Cup points are added once every match is played.')+'</p>';
+  return h;
+}
+function renderEvent(s,c){
+  var ev=evById(s,ui.ev),r=c.R[ev.id],sc=ev.scores||{};
+  if(isH2H(ev))return renderH2H(s,c,ev);
+  var h='<section><div class="detail-head"><button class="btn small ghost" data-act="back">← All events</button><h2>'+esc(ev.name)+'</h2>';
+  if(ui.unlocked&&!s.final){
+    h+='<span class="dir" role="group" aria-label="How the event is won"><button data-act="dir" data-v="high" aria-pressed="'+!ev.low+'">Highest wins</button><button data-act="dir" data-v="low" aria-pressed="'+!!ev.low+'">Lowest wins</button></span></div>';
+    h+='<div class="edit-tools"><span class="tapnote">Type each player’s score. Places and points work themselves out; leave a box empty if someone didn’t play.</span>'
+      +(hasResults(ev)?(ui.confirm==='clear'?'<button class="btn small danger" data-act="clear-yes">Clear all scores?</button><button class="btn small ghost" data-act="confirm-no">Keep</button>':'<button class="btn small ghost" data-act="clear">Clear scores</button>'):'')+'</div>';
+    var ents=s.players.slice().sort(function(a,b){var A=teamOf(s,a.team)||NOTEAM,B=teamOf(s,b.team)||NOTEAM;return A.name.localeCompare(B.name)||a.name.localeCompare(b.name);});
+    h+='<div class="tbl-wrap"><table class="score-tbl"><thead><tr><th>Player</th><th class="r">Score</th><th class="c">Place</th><th class="r">Pts</th></tr></thead><tbody>';
+    ents.forEach(function(p){var x=r[p.id],t=teamOf(s,p.team)||NOTEAM;
+      h+='<tr><td><div class="pl-name">'+esc(p.name)+'</div>'+teamChip(t)+'</td>'
+        +'<td class="r"><input class="score" type="text" inputmode="decimal" autocomplete="off" id="sc-'+esc(p.id)+'" data-sc="'+esc(p.id)+'" value="'+(isNum(sc[p.id])?esc(sc[p.id]):'')+'" aria-label="Score for '+esc(p.name)+'"></td>'
+        +'<td class="c num" id="pp-'+esc(p.id)+'">'+(x?ordinal(x.place):'–')+'</td><td class="r bigpts num" id="pt-'+esc(p.id)+'">'+(x?fmt(x.pts):'–')+'</td></tr>';});
+    return h+'</tbody></table></div></section>';
+  }
+  h+='<span class="pill">'+(ev.low?'Lowest score wins':'Highest score wins')+'</span></div>';
+  return h+resultsTable(s,r)+'</section>';
+}
+function resultsTable(s,r){
+  var placed=s.players.filter(function(p){return r[p.id];}).sort(function(a,b){return r[a.id].place-r[b.id].place||a.name.localeCompare(b.name);});
+  if(!placed.length)return '<p class="empty">No results yet. Check back once it’s been played.</p>';
+  var counts={};placed.forEach(function(p){counts[r[p.id].place]=(counts[r[p.id].place]||0)+1;});
+  var h='<div class="tbl-wrap"><table><thead><tr><th>Place</th><th>Player</th><th class="r">Score</th><th class="r">Pts</th></tr></thead><tbody>';
+  placed.forEach(function(p){var x=r[p.id],pl=x.place,t=teamOf(s,p.team)||NOTEAM;
+    var md=pl<=3?'<span class="medal '+(pl===1?'g':pl===2?'s':'b')+'">'+pl+'</span>':'<span class="num">'+pl+'</span>';
+    h+='<tr><td class="rkc">'+(counts[pl]>1?'<span class="dash">=</span>':'')+md+'</td><td><div class="pl-name">'+esc(p.name)+'</div>'+teamChip(t)+'</td><td class="r num">'+fmt(x.score)+'</td><td class="r bigpts num">'+fmt(x.pts)+'</td></tr>';});
+  var missing=s.players.length-placed.length;
+  return h+'</tbody></table></div>'+(missing?'<p class="sec-note" style="margin-top:8px">'+missing+' without a score get 0 points.</p>':'');
+}
+
+/* ---------- Records / archive ---------- */
+function names(arr){var a=arr.map(esc);return a.length<2?a.join(''):a.slice(0,-1).join(', ')+' &amp; '+a[a.length-1];}
+function better(a,b,low){return low?a<b:a>b;}
+function renderArchive(s){
+  var ys=allYears(s),L=s.legacy||{},closed=ys.filter(function(y){return !y.live;}),liveY=ys.filter(function(y){return y.live;})[0];
+  var h='<section><h2>Champions &amp; records</h2><p class="sec-note">Current holders and best scores of all time. A record set today shows as soon as it’s published.</p>'
+    +'<div class="tbl-wrap"><table><thead><tr><th>Title</th><th>Current holder</th><th>Top score of all time</th></tr></thead><tbody>';
+  function row(title,holder,best,bestBy,bestYear,isNew){
+    return '<tr><td class="pl-name">'+title+'</td><td>'+(holder||'<span class="dash">–</span>')+'</td><td>'
+      +(best!=null?'<span class="bigpts num">'+fmt(best)+'</span> <span class="rec-by">'+bestBy+(bestYear?' · '+esc(bestYear):'')+'</span>'+(isNew?'<span class="rec-new">New record</span>':''):'<span class="dash">n/a</span>')+'</td></tr>';
+  }
+  // Cup (team) and Champion (individual)
+  var cupHolder=closed.length?closed[0].teamWin.map(function(t){return names(membersOf(closed[0],t));}).join('<br>'):esc(L.cup&&L.cup.holder||'');
+  var champHolder=closed.length?names(closed[0].champs.map(function(p){return p.name;})):esc(L.champion&&L.champion.holder||'');
+  var cbz={},cb={v:L.cup?L.cup.best:null,by:esc(L.cup&&L.cup.bestBy||''),yr:'',nw:false},hb={v:L.champion?L.champion.best:null,by:esc(L.champion&&L.champion.bestBy||''),yr:'',nw:false};
+  ys.slice().reverse().forEach(function(y){
+    y.teams.forEach(function(t){var z=teamSizeOf(y.st,t),v=y.c.T[t.id].pts,cur=cbz[z];if(v>0&&(!cur||v>cur.v)){cbz[z]={v:v,by:esc(t.name)+' ('+names(membersOf(y,t))+')',yr:y.a.year,nw:y.live};}});
+    y.st.players.forEach(function(p){var v=y.c.P[p.id].pts;if(v>0&&(hb.v==null||v>hb.v)){hb={v:v,by:esc(p.name),yr:y.a.year,nw:y.live};}else if(v>0&&v===hb.v&&hb.yr===y.a.year){hb.by+=' &amp; '+esc(p.name);}});
+  });
+  var curSize=0;s.teams.forEach(function(t){var z=teamSizeOf(s,t);if(z>curSize)curSize=z;});
+  if(curSize&&!cbz[curSize])cbz[curSize]={v:null,by:'',yr:'',nw:false};
+  var sizes=Object.keys(cbz).map(Number).sort(function(a,b){return (b===curSize)-(a===curSize)||b-a;});
+  var holdSize=closed.length&&closed[0].teamWin.length?teamSizeOf(closed[0].st,closed[0].teamWin[0]):curSize;
+  sizes.forEach(function(z){var r=cbz[z];h+=row('The C.U.N.T Cup <span class="rec-by">('+sizeLabel(z)+')</span>',z===holdSize?cupHolder:'<span class="dash">'+(z===curSize?'First winners crowned in '+esc(s.year):'\u2013')+'</span>',r.v,r.by,r.yr,r.nw);});
+  h+=row('The Champion C.U.N.T',champHolder,hb.v,hb.by,hb.yr,hb.nw);
+  // Events
+  var E={},order=[];
+  function ent(name){var k=ekey(name);if(!E[k]){E[k]={name:name,holder:null,best:null,by:'',yr:'',nw:false,low:false};order.push(k);}return E[k];}
+  (L.events||[]).forEach(function(le){var e=ent(le.name);e.holder=le.holder?esc(le.holder):null;if(le.best!=null){e.best=le.best;e.by=esc(le.bestBy||'');}});
+  s.events.forEach(function(ev){ent(ev.name).low=!!ev.low;ent(ev.name).name=ev.name;});
+  ys.slice().reverse().forEach(function(y){
+    y.st.events.forEach(function(ev){
+      if(!hasResults(ev))return; var e=ent(ev.name),r=y.c.R[ev.id];
+      var low=!!ev.low;if(ev.kind!=='pts')e.low=low;
+      if(!y.live){var w=y.st.players.filter(function(p){return r[p.id]&&r[p.id].place===1;}).map(function(p){return p.name;});if(w.length)e.holder=names(w);}
+      y.st.players.forEach(function(p){var x=r[p.id];if(!x||!isNum(x.score))return;
+        if(e.best==null||better(x.score,e.best,low)){e.best=x.score;e.by=esc(p.name);e.yr=y.a.year;e.nw=y.live;}
+        else if(x.score===e.best&&e.yr===y.a.year&&e.by.indexOf(esc(p.name))<0){e.by+=' &amp; '+esc(p.name);}});
+    });
+  });
+  order.forEach(function(k){var e=E[k];if(!e.holder&&e.best==null)return;h+=row(esc(e.name)+(e.low?' <span class="rec-by">(lowest wins)</span>':''),e.holder,e.best,e.by,e.yr,e.nw);});
+  h+='</tbody></table></div></section>';
+
+  h+='<section><h2>Roll of honour</h2>';
+  if(!ys.length)h+='<p class="empty">No years recorded yet.</p>';
+  else{
+    h+='<p class="sec-note">Tap a year for its full standings and results. There was no Cup in 2022.</p><div class="tbl-wrap"><table class="honour"><thead><tr><th>Year</th><th>C.U.N.T Cup</th><th>Champion C.U.N.T</th></tr></thead><tbody>';
+    ys.forEach(function(y){
+      var tw=y.teamWin.length?y.teamWin.map(function(t){return '<div>'+teamChip(t,true)+'<div class="who">'+names(membersOf(y,t))+'</div></div>';}).join(''):'<span class="dash">–</span>';
+      var ch=y.champs.length?y.champs.map(function(p){return '<div class="pl-name">'+esc(p.name)+' <span class="dash num">· '+fmt(y.c.P[p.id].pts)+' pts</span></div>';}).join(''):'<span class="dash">–</span>';
+      h+='<tr><td><button class="year-btn num" data-act="open-year" data-v="'+esc(y.a.year)+'">'+esc(y.a.year)+'</button>'+(y.live?'<span class="live-tag">In progress</span>':'')+'</td><td>'+tw+'</td><td>'+ch+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='</section>';
+  return h+renderAllTime(s,ys);
+}
+function renderAllTime(s,ys){
+  var M={};
+  function get(name){var k=nkey(name);if(!M[k])M[k]={name:name,played:0,won:0,lost:0,cups:0,champs:0,pts:0};return M[k];}
+  ((s.legacy||{}).players||[]).forEach(function(l){var m=get(l.name);['played','won','lost','cups','champs','pts'].forEach(function(f){m[f]+=+l[f]||0;});});
+  s.players.forEach(function(p){get(p.name);});
+  ys.forEach(function(y){
+    y.st.players.forEach(function(p){var q=y.c.P[p.id],m=get(p.name);m.name=p.name;m.played+=q.played;m.won+=q.won;m.lost+=q.lost;m.pts+=q.pts;});
+    if(y.live)return;
+    y.teamWin.forEach(function(t){membersOf(y,t).forEach(function(n){get(n).cups++;});});
+    y.champs.forEach(function(p){get(p.name).champs++;});
+  });
+  var rows=Object.keys(M).map(function(k){var m=M[k];m.avg=m.played?m.pts/m.played:0;return m;});
+  if(!rows.length)return '';
+  var key={points:function(m){return [m.pts,m.won,-m.lost];},wins:function(m){return [m.won,m.pts,-m.lost];},titles:function(m){return [m.cups+m.champs,m.champs,m.pts];},avg:function(m){return [Math.round(m.avg*100),m.played,m.pts];}}[ui.sortAll];
+  rows.sort(function(a,b){var A=key(a),B=key(b);for(var i=0;i<A.length;i++){if(B[i]!==A[i])return B[i]-A[i];}return a.name.localeCompare(b.name);});
+  var rr=ranked(rows,function(m){return key(m).join('|');});
+  var h='<section><div class="sec-head"><h2>All-time statistics</h2><div class="sortbar" aria-label="Sort all-time table">'
+    +[['points','Points'],['avg','Per event'],['wins','Wins'],['titles','Titles']].map(function(o){return '<button class="tab" data-act="sort-all" data-v="'+o[0]+'" aria-selected="'+(ui.sortAll===o[0])+'">'+o[1]+'</button>';}).join('')
+    +'</div></div><p class="sec-note">Every Cup since 2021, plus '+esc(s.year)+' so far. Won is an event win; lost is finishing last. Per event is CC points divided by events played.</p>'
+    +'<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Player</th><th class="c">Played</th><th class="c">Won</th><th class="c">Lost</th><th class="c">Cups</th><th class="c">Champion</th><th class="r">Per event</th><th class="r">CC Pts</th></tr></thead><tbody>';
+  function z(n){return n?n:'<span class="dash">0</span>';}
+  rr.forEach(function(x){var m=x.it;h+='<tr><td class="rkc num">'+rankLabel(x.rank,rr)+'</td><td class="pl-name">'+esc(m.name)+'</td><td class="c num">'+m.played+'</td><td class="c num">'+z(m.won)+'</td><td class="c num">'+z(m.lost)+'</td><td class="c num">'+z(m.cups)+'</td><td class="c num">'+z(m.champs)+'</td><td class="r num">'+(m.played?m.avg.toFixed(2):'<span class="dash">\u2013</span>')+'</td><td class="r bigpts num">'+fmt(m.pts)+'</td></tr>';});
+  return h+'</tbody></table></div></section>';
+}
+function yearPills(s){
+  var ys=allYears(s);
+  if(!ys.some(function(y){return String(y.a.year)===String(s.year);}))ys.unshift({a:{year:s.year},live:true});
+  return '<nav class="yearbar" aria-label="Choose a year"><button class="tab" data-act="back-year" aria-selected="'+(!ui.year)+'">All time</button>'
+    +ys.map(function(y){var v=String(y.a.year);return '<button class="tab num" data-act="open-year" data-v="'+esc(v)+'" aria-selected="'+(String(ui.year)===v)+'">'+esc(v)+(y.live&&!s.final?' <span class="live-dot" aria-label="in progress"></span>':'')+'</button>';}).join('')
+    +'</nav>';
+}
+function renderYear(s){
+  var y=allYears(s).filter(function(x){return String(x.a.year)===String(ui.year);})[0];
+  var h='<section><div class="detail-head"><h2>The '+esc(ui.year)+' Cup</h2>';
+  if(!y&&String(ui.year)===String(s.year))return h+'</div><p class="empty">No scores yet for '+esc(s.year)+'. Once the first event is in, this year\u2019s standings, race chart and podiums show here.</p></section>';
+  if(!y)return h+'</div><p class="empty">That year isn’t in the archive.</p></section>';
+  if(ui.unlocked&&!y.live)h+=(ui.confirm==='y:'+ui.year?'<button class="btn small danger" data-act="del-year-yes">Remove this year?</button><button class="btn small ghost" data-act="confirm-no">Keep</button>':'<button class="btn small ghost" data-act="del-year">Remove year</button>');
+  h+='</div>';
+  if(y.live)h+='<p class="sec-note">This year is still being played. Live scores are on the Standings tab.</p>';
+  h+=renderStandings(y.st,y.c,y.teams,false);
+  var played=y.st.events.filter(hasResults);
+  if(played.length){h+='<section><h2>Event podiums</h2><div class="events">';played.forEach(function(ev){h+='<div class="ev"><div class="ev-top"><h3 class="ev-name">'+esc(ev.name)+'</h3></div>'+podiumHtml(y.st,y.c.R[ev.id],ev)+'</div>';});h+='</div></section>';}
+  return h;
+}
+
+function renderSetup(s){
+  var h='<div class="detail-head"><button class="btn small ghost" data-act="tab" data-v="standings">\u2190 Done</button><h2>Setup</h2></div><div class="setup"><section><h2>Teams</h2><div class="card">';
+  s.teams.forEach(function(t,i){h+='<div class="row"><input type="color" id="tc-'+t.id+'" value="'+esc(t.color)+'" data-ch="team-color" data-v="'+t.id+'" aria-label="Colour for '+esc(t.name)+'"><input type="text" id="tn-'+t.id+'" value="'+esc(t.name)+'" data-in="team-name" data-v="'+t.id+'" aria-label="Team '+(i+1)+' name"></div>';});
+  h+='</div></section><section><div class="sec-head"><h2>Players</h2><button class="btn small" data-act="add-player">Add player</button></div><div class="card">';
+  s.players.forEach(function(p){var t=teamOf(s,p.team)||NOTEAM;
+    h+='<div class="row" style="--tc:'+esc(t.color)+'"><span class="dot"></span><input type="text" id="pn-'+p.id+'" value="'+esc(p.name)+'" data-in="player-name" data-v="'+p.id+'" aria-label="Player name">'
+      +'<select class="place" id="pt-'+p.id+'" data-ch="player-team" data-v="'+p.id+'" aria-label="Team for '+esc(p.name)+'">'+s.teams.map(function(tt){return '<option value="'+tt.id+'"'+(tt.id===p.team?' selected':'')+'>'+esc(tt.name)+'</option>';}).join('')+'</select>'
+      +(ui.confirm==='p:'+p.id?'<button class="btn small danger" data-act="del-player-yes" data-v="'+p.id+'">Remove</button><button class="btn small ghost" data-act="confirm-no">Keep</button>':'<button class="btn small ghost" data-act="del-player" data-v="'+p.id+'" aria-label="Remove '+esc(p.name)+'">✕</button>')+'</div>';});
+  h+='<p class="hint">Keep each name spelled the same every year so the all-time table adds them up. The number of players sets the points: with '+s.players.length+' players, 1st scores '+s.players.length+'.</p></div></section>';
+  h+='<section><h2>Events</h2><div class="card">'+addEventForm('set');
+  if(!s.events.length)h+='<p class="hint">No events yet.</p>';
+  s.events.forEach(function(e,i){
+    h+='<div class="row"><span class="ev-no num" style="font-size:22px">'+(i+1)+'</span><input type="text" id="en-'+e.id+'" value="'+esc(e.name)+'" data-in="event-name" data-v="'+e.id+'" aria-label="Event name">'
+      +'<select class="place" id="ed-'+e.id+'" data-ch="event-dir" data-v="'+e.id+'" aria-label="How '+esc(e.name)+' is won"><option value="high"'+(!isH2H(e)&&!e.low?' selected':'')+'>Highest wins</option><option value="low"'+(!isH2H(e)&&e.low?' selected':'')+'>Lowest wins</option><option value="h2h"'+(isH2H(e)?' selected':'')+'>Head to head</option></select>'
+      +'<button class="btn small ghost" data-act="ev-up" data-v="'+e.id+'"'+(i===0?' disabled':'')+' aria-label="Move up">↑</button>'
+      +'<button class="btn small ghost" data-act="ev-down" data-v="'+e.id+'"'+(i===s.events.length-1?' disabled':'')+' aria-label="Move down">↓</button>'
+      +(ui.confirm==='e:'+e.id?'<button class="btn small danger" data-act="del-event-yes" data-v="'+e.id+'">Delete</button><button class="btn small ghost" data-act="confirm-no">Keep</button>':'<button class="btn small ghost" data-act="del-event" data-v="'+e.id+'" aria-label="Delete '+esc(e.name)+'">✕</button>')+'</div>';});
+  h+='<p class="hint">Use the same event names every year (“Minigolf”, “Darts”) so records carry across.</p></div></section>';
+  var next=(parseInt(s.year,10)||new Date().getFullYear())+1,hasAny=s.events.some(hasResults);
+  var missing=s.events.filter(function(e){return !hasResults(e);}).map(function(e){return e.name;});
+  h+='<section><h2>Finish the year</h2><div class="card">';
+  if(!s.final){
+    h+='<p class="hint">When the last scores are in, crown the champions. Scores lock, the winners go on the front page, and the titles count in the roll of honour and all-time table straight away.</p><div class="row">'
+      +(ui.confirm==='crown'?'<button class="btn small danger" data-act="crown-yes">Crown the '+esc(s.year)+' champions</button><button class="btn small ghost" data-act="confirm-no">Not yet</button>'
+        +(missing.length?'<span class="hint">'+missing.length+' event'+(missing.length>1?'s have':' has')+' no scores yet: '+missing.map(esc).join(', ')+'.</span>':'')
+        :'<button class="btn small primary" data-act="crown"'+(hasAny?'':' disabled')+'>Crown the champions</button>'+(hasAny?'':'<span class="hint">Available once scores are in.</span>'))+'</div>';
+  } else {
+    h+='<p class="hint">'+esc(s.year)+' is final. Reopen scoring to correct a mistake, then crown again. When it’s time for next year, start '+next+': same players and events, scores cleared, '+esc(s.year)+' kept under Records.</p><div class="row">'
+      +(ui.confirm==='reopen'?'<button class="btn small danger" data-act="reopen-yes">Reopen '+esc(s.year)+' scoring</button><button class="btn small ghost" data-act="confirm-no">Keep it final</button>'
+        :ui.confirm==='next'?'<button class="btn small danger" data-act="next-yes">Start '+next+' now</button><button class="btn small ghost" data-act="confirm-no">Not yet</button>'
+        :'<button class="btn small" data-act="reopen">Reopen scoring</button><button class="btn small primary" data-act="next">Start '+next+'</button>')+'</div>';
+  }
+  h+='</div></section>';
+  h+='<section><h2>Year</h2><div class="card"><label class="lbl" for="yr">Year</label><input type="text" inputmode="numeric" id="yr" value="'+esc(s.year)+'" data-ch="year">'
+    +'<p class="hint">Scorekeepers sign in with their own email and password. To add one, create a user in Firebase (Authentication) and add their email to the database rules.</p></div></section>';
+  return h+'</div>';
+}
+
+/* ---------- Actions ---------- */
+function toast(msg){ui.toast=msg;render();clearTimeout(toast.t);toast.t=setTimeout(function(){ui.toast=null;render();},3200);}
+function uid(p){return p+Math.random().toString(36).slice(2,8);}
+APP.addEventListener('click',function(ev){
+  var el=ev.target.closest('[data-act]');if(!el)return;
+  var a=el.getAttribute('data-act'),v=el.getAttribute('data-v'),d;
+  if(a!=='keeper')ui.menu=false;
+  switch(a){
+    case 'tab':ui.tab=v;ui.ev=null;ui.year=null;ui.confirm=null;ss.set('cc-tab',v);ss.del('cc-ev');ss.del('cc-year');break;
+    case 'open-ev':ui.ev=v;ui.confirm=null;ss.set('cc-ev',v);window.scrollTo(0,0);break;
+    case 'back':ui.ev=null;ui.confirm=null;ss.del('cc-ev');break;
+    case 'open-year':ui.year=v;ui.confirm=null;ss.set('cc-year',v);window.scrollTo(0,0);break;
+    case 'back-year':ui.year=null;ui.confirm=null;ss.del('cc-year');break;
+    case 'sort-all':ui.sortAll=v;break;
+    case 'lu-go':var tr=document.getElementById('lu-track');if(tr){var cw=tr.clientWidth;tr.scrollTo({left:cw*(+v),behavior:'smooth'});}return;
+    case 'pw-open':ui.pw=(ui.pw===v)?null:v;break;
+    case 'pw-scope':ui.pwAll=(v==='all');break;
+    case 'pw-go':ui.tab='power';ui.pw=v;ss.set('cc-tab','power');window.scrollTo(0,0);break;
+    case 'toggle-ind':ui.allInd=!ui.allInd;if(ui.allInd)ss.set('cc-allind','1');else ss.del('cc-allind');break;
+    case 'keeper':if(ui.unlocked){ui.menu=!ui.menu;}else{ui.pinOpen=!ui.pinOpen;ui.pinErr='';}break;
+    case 'pin-cancel':ui.pinOpen=false;break;
+    case 'lock':if(dirty()){toast('Publish or discard your changes first.');return;}draft=null;ui.menu=false;if(ui.tab==='setup')ui.tab='standings';if(window.CupFb)window.CupFb.signOut();break;
+    case 'discard':draft=null;ui.confirm=null;break;
+    case 'save':save();return;
+    case 'dir':d=edit();evById(d,ui.ev).low=(v==='low');break;
+    case 'mres':d=edit();var pv=v.split(':'),mm=evById(d,ui.ev).matches[+pv[0]];mm.res=(mm.res===pv[1])?null:pv[1];break;
+    case 'rebuild':ui.confirm='rebuild';break;
+    case 'rebuild-yes':d=edit();var eh=evById(d,ui.ev);eh.matches=fixtures(d.teams.map(function(t){return t.id;}));ui.confirm=null;break;
+    case 'clear':ui.confirm='clear';break;
+    case 'clear-yes':d=edit();evById(d,ui.ev).scores={};ui.confirm=null;break;
+    case 'confirm-no':ui.confirm=null;break;
+    case 'add-player':d=edit();d.players.push({id:uid('p'),name:'New player',team:d.teams[0].id});break;
+    case 'del-player':ui.confirm='p:'+v;break;
+    case 'del-player-yes':d=edit();d.players=d.players.filter(function(p){return p.id!==v;});d.events.forEach(function(e){delete e.scores[v];});ui.confirm=null;break;
+    case 'del-event':ui.confirm='e:'+v;break;
+    case 'del-event-yes':d=edit();d.events=d.events.filter(function(e){return e.id!==v;});ui.confirm=null;break;
+    case 'ev-up':case 'ev-down':d=edit();var i=-1;d.events.forEach(function(e,k){if(e.id===v)i=k;});var j=a==='ev-up'?i-1:i+1;if(i>=0&&j>=0&&j<d.events.length){var tmp=d.events[i];d.events[i]=d.events[j];d.events[j]=tmp;}break;
+    case 'crown':ui.confirm='crown';break;
+    case 'crown-yes':d=edit();d.archive=(d.archive||[]).filter(function(x){return String(x.year)!==String(d.year);});d.archive.push(toArchive(d));d.final=true;
+      ui.confirm=null;ui.tab='standings';ui.ev=null;ss.set('cc-tab','standings');ss.del('cc-ev');toast('Champions crowned. Publish to announce it.');return;
+    case 'reopen':ui.confirm='reopen';break;
+    case 'reopen-yes':d=edit();d.final=false;d.archive=(d.archive||[]).filter(function(x){return String(x.year)!==String(d.year);});ui.confirm=null;break;
+    case 'next':ui.confirm='next';break;
+    case 'next-yes':d=edit();d.archive=(d.archive||[]).filter(function(x){return String(x.year)!==String(d.year);});d.archive.push(toArchive(d));
+      d.year=(parseInt(d.year,10)||new Date().getFullYear())+1;d.events.forEach(function(e){e.scores={};});d.final=false;ui.confirm=null;
+      toast('Ready for '+d.year+'. Set the teams, then publish.');return;
+    case 'del-year':ui.confirm='y:'+ui.year;break;
+    case 'del-year-yes':d=edit();d.archive=(d.archive||[]).filter(function(x){return String(x.year)!==String(ui.year);});ui.year=null;ss.del('cc-year');ui.confirm=null;break;
+    default:return;
+  }
+  render();
+});
+APP.addEventListener('input',function(ev){
+  var el=ev.target,d,v;
+  if(el.hasAttribute('data-ms')){
+    d=edit();var e3=evById(d,ui.ev),mi=+el.getAttribute('data-ms'),m3=e3.matches[mi],raw=el.value.trim().replace(',','.');
+    m3[el.getAttribute('data-side')==='a'?'sa':'sb']=isNum(raw)?+raw:'';
+    if(isNum(m3.sa)&&isNum(m3.sb))m3.res=+m3.sa>+m3.sb?'a':+m3.sb>+m3.sa?'b':'d';
+    var box=document.getElementById('m-'+mi);if(box)box.querySelectorAll('[data-act="mres"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===mi+':'+m3.res));});
+    var tb=document.getElementById('h2h-table');if(tb)tb.innerHTML=h2hTableHtml(d,e3);
+    var cn=document.getElementById('h2h-count');if(cn){var pl=e3.matches.filter(function(x){return x.res;}).length;cn.textContent='\u00b7 '+pl+' of '+e3.matches.length+' played';}
+    updateBar();return;
+  }
+  if(el.hasAttribute('data-mp')){
+    d=edit();var e4=evById(d,ui.ev),rv=el.value.trim().replace(',','.');e4.mp=e4.mp||{w:3,d:1,l:0};
+    if(isNum(rv)){e4.mp[el.getAttribute('data-mp')]=+rv;var tb2=document.getElementById('h2h-table');if(tb2)tb2.innerHTML=h2hTableHtml(d,e4);}
+    updateBar();return;
+  }
+  if(el.hasAttribute('data-sc')){
+    d=edit();v=el.getAttribute('data-sc');var e=evById(d,ui.ev),val=el.value.trim().replace(',','.');
+    if(isNum(val))e.scores[v]=+val;else delete e.scores[v];
+    var r=evalEvent(e,d);
+    d.players.forEach(function(p){var x=r[p.id],a=document.getElementById('pp-'+p.id),b=document.getElementById('pt-'+p.id);if(a)a.textContent=x?ordinal(x.place):'–';if(b)b.textContent=x?fmt(x.pts):'–';});
+    updateBar();return;
+  }
+  var k=el.getAttribute('data-in');if(!k)return;
+  d=edit();v=el.getAttribute('data-v');var val2=el.value;
+  if(k==='team-name')teamOf(d,v).name=val2;
+  else if(k==='player-name')d.players.forEach(function(p){if(p.id===v)p.name=val2;});
+  else if(k==='event-name')evById(d,v).name=val2;
+  updateBar();
+});
+APP.addEventListener('change',function(ev){
+  var el=ev.target,k=el.getAttribute('data-ch');
+  if(el.hasAttribute('data-in'))return render();
+  if(!k)return;
+  var d=edit(),v=el.getAttribute('data-v'),val=el.value;
+  if(k==='team-color')teamOf(d,v).color=val;
+  else if(k==='player-team')d.players.forEach(function(p){if(p.id===v)p.team=val;});
+  else if(k==='event-dir'){var ev2=evById(d,v);
+    if(val==='h2h'){if(!isH2H(ev2)){var nh=newH2H(d.teams);ev2.kind='h2h';ev2.mp=nh.mp;ev2.matches=nh.matches;ev2.scores={};}}
+    else{if(isH2H(ev2)){delete ev2.kind;delete ev2.matches;delete ev2.mp;ev2.scores={};}ev2.low=(val==='low');}}
+  else if(k==='year'){var y=val.trim();if(y)d.year=y;}
+  render();
+});
+APP.addEventListener('submit',function(ev){
+  ev.preventDefault();
+  var f=ev.target,kind=f.getAttribute('data-form');
+  if(kind==='add-event'){
+    var inp=f.querySelector('input'),dir=f.querySelector('select'),nm=(inp&&inp.value||'').trim();
+    if(!nm){toast('Type the event name first.');return;}
+    var dd=edit();
+    if(dir&&dir.value==='h2h'){var ne=newH2H(dd.teams);ne.id=uid('e');ne.name=nm;dd.events.push(ne);}
+    else dd.events.push({id:uid('e'),name:nm,low:!!dir&&dir.value==='low',scores:{}});
+    toast(nm+' added. Publish to share it.');return;
+  }
+  if(kind!=='pin')return;
+  var em=((document.getElementById('pin-email')||{}).value||'').trim(),pw=(document.getElementById('pin-in')||{}).value||'';
+  ui.email=em;
+  if(!em||!pw){ui.pinErr='Enter your email and password.';render();return;}
+  if(!window.CupFb){ui.pinErr='Can\u2019t reach the scoreboard right now. Check your signal and try again.';render();return;}
+  ui.signing=true;ui.pinErr='';render();
+  window.CupFb.signIn(em,pw).then(function(){ui.signing=false;ui.pinOpen=false;render();})
+  .catch(function(e){ui.signing=false;var c=e&&e.code||'';
+    ui.pinErr=(c.indexOf('invalid')>=0||c.indexOf('wrong-password')>=0||c.indexOf('user-not-found')>=0)?'That email and password don\u2019t match. Try again.':c==='auth/too-many-requests'?'Too many tries. Wait a minute and try again.':'Couldn\u2019t sign in. Check your signal and try again.';render();});
+});
+function updateBar(){
+  var m=APP.querySelector('.savebar');if(!m)return render();
+  var d=dirty(),tmp=document.createElement('div');
+  tmp.innerHTML='<div class="savebar"><div class="savebar-in"><span class="msg">'+(d?'Unsaved changes':'Scorekeeper mode · everything saved')+'</span>'+(d?'<button class="btn small" data-act="discard">Discard</button><button class="btn small primary" data-act="save">Publish scores</button>':'')+'</div></div>';
+  m.replaceWith(tmp.firstChild);
+}
+
+/* ---------- Publish (Firebase) ----------
+   The whole scoreboard is one document (cup/state). Each publish bumps "rev"; the save only goes through
+   if nobody else has published since this phone last loaded, so two scorekeepers can't overwrite each other. */
+function save(){
+  if(!dirty())return;
+  if(!window.CupFb){toast('Can\u2019t reach the scoreboard right now. Check your signal and try again.');return;}
+  ui.saving=true;render();
+  var next=clone(draft);next.updatedAt=new Date().toISOString();next.rev=(state.rev||0)+1;
+  window.CupFb.save(next,state.rev||0).then(function(){draft=null;state=next;ui.saving=false;toast('Published. Everyone sees the new scores.');})
+  .catch(function(e){ui.saving=false;var c=e&&e.code||'';
+    if(c==='cup/conflict'){draft=null;toast('Someone else published first. Showing their scores \u2013 re-enter yours if needed.');}
+    else if(c==='permission-denied'){ui.canWrite=false;toast('This login can\u2019t publish scores.');}
+    else toast('Couldn\u2019t publish. Check your signal and try again.');
+    render();});
+}
+/* Called by the Firebase bridge */
+window.CupApp={
+  remote:function(st){
+    if(!st||typeof st!=='object')return;
+    var changed=JSON.stringify(st)!==JSON.stringify(state);state=st;if(!state.archive)state.archive=[];
+    if(!changed)return;
+    if(draft&&!ui.saving){toast('New scores were just published. Discard yours to see them, or publish to overwrite.');}
+    render();
+  },
+  user:function(u){
+    ui.user=u;ui.unlocked=!!u;if(u){ui.email=u.email||ui.email;ui.canWrite=null;}else{ui.menu=false;draft=null;}
+    render();
+  },
+  seed:function(){return clone(state);}
+};
+APP.addEventListener('scroll',function(ev){var tr=ev.target;if(!tr||tr.id!=='lu-track')return;var i=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));
+  [].slice.call(APP.querySelectorAll('.lu-dot')).forEach(function(d,k){d.setAttribute('aria-selected',String(k===i));});},true);
+render();
+if(window.CupFbReady)window.CupFbReady();
+})();
+</script>
+<script type="module">import {initializeApp,initializeFirestore,persistentLocalCache,persistentSingleTabManager,doc,onSnapshot,runTransaction,getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from './firebase.js';
+const app=initializeApp({"apiKey": "AIzaSyAxowlxCxMQnqbmk-nnsxyJ_pRkTgEy6hw", "authDomain": "ccup-scoreboard.firebaseapp.com", "projectId": "ccup-scoreboard", "storageBucket": "ccup-scoreboard.firebasestorage.app", "messagingSenderId": "227277315366", "appId": "1:227277315366:web:f7809879c0fa954d77b5e7"});
+let db;try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentSingleTabManager()})});}catch(e){db=initializeFirestore(app,{});}
+const auth=getAuth(app);
+const ref=doc(db,'cup','state');
+let user=null,exists=null;
+function conflict(){const e=new Error('conflict');e.code='cup/conflict';return e;}
+window.CupFb={
+  signIn:(email,pw)=>signInWithEmailAndPassword(auth,email,pw),
+  signOut:()=>signOut(auth),
+  save:(next,expectRev)=>runTransaction(db,async tx=>{
+    const snap=await tx.get(ref);
+    if(snap.exists()){const cur=JSON.parse(snap.data().data||'{}');if((cur.rev||0)!==expectRev)throw conflict();}
+    tx.set(ref,{data:JSON.stringify(next),rev:next.rev,updatedAt:next.updatedAt,by:user?user.email:''});
+  })
+};
+function start(){
+  onSnapshot(ref,snap=>{
+    exists=snap.exists();
+    if(exists){try{window.CupApp.remote(JSON.parse(snap.data().data));}catch(e){console.error(e);}}
+    else maybeSeed();
+  },err=>console.error('scoreboard listener',err));
+  onAuthStateChanged(auth,u=>{user=u;window.CupApp.user(u?{email:u.email}:null);maybeSeed();});
+}
+/* First sign-in on an empty database copies the scoreboard (history included) into it */
+function maybeSeed(){
+  if(exists!==false||!user)return;
+  const st=window.CupApp.seed();st.rev=1;st.updatedAt=new Date().toISOString();
+  runTransaction(db,async tx=>{const s=await tx.get(ref);if(!s.exists())tx.set(ref,{data:JSON.stringify(st),rev:1,updatedAt:st.updatedAt,by:user.email});}).catch(e=>console.error('seed',e));
+}
+if(window.CupApp)start();else window.CupFbReady=start;
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</body>
+</html>
