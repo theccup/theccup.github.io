@@ -672,7 +672,6 @@ function fbPct(v){return v==null?'':' \u00b7 '+(v<0.01?'<1':Math.round(v*100))+'
 function fbTag(kind,pct){
   if(kind==='fav')return '<span class="fbtag fav">Favourite'+fbPct(pct)+'</span>';
   if(kind==='out')return '<span class="fbtag">Outsider'+fbPct(pct)+'</span>';
-  if(kind==='spoon')return '<span class="fbtag">Spoon fav'+fbPct(pct)+'</span>';
   return '';
 }
 function formBookLine(s,c,ts){
@@ -683,8 +682,7 @@ function formBookLine(s,c,ts){
     if(k==='out')bits.push(r===1?'Outsiders '+esc(t.name)+' win the Cup':'Outsiders '+esc(t.name)+' finished '+ordinal(r));
     else bits.push(r===1?'Favourites '+esc(t.name)+' delivered':'Favourites '+esc(t.name)+' finished '+ordinal(r));});
   s.players.forEach(function(p){var k=fb.player[p.id];if(!k)return;var r=prk[p.id],n=esc(p.name);
-    if(k==='fav')bits.push(r===1?'Favourite '+n+' delivered':'Favourite '+n+' finished '+ordinal(r));
-    else bits.push(r===s.players.length?'Spoon favourite '+n+' took the spoon':'Spoon favourite '+n+' finished '+ordinal(r));});
+    if(k==='fav')bits.push(r===1?'Favourite '+n+' delivered':'Favourite '+n+' finished '+ordinal(r));});
   return bits.length?'<div class="crown-recs"><span class="lbl">The form book</span><ul>'+bits.map(function(b){return '<li>'+b+'</li>';}).join('')+'</ul></div>':'';
 }
 /* ---------- Live chances: simulate the rest of the day ----------
@@ -766,8 +764,7 @@ function dayCards(s,c,ts){
     else{var win=s.players.filter(function(p){return r[p.id]&&r[p.id].place===1;});
       head=esc(lastEv.name)+': '+names(win.map(function(p){return p.name;}))+(win.length>1?' share it':' wins')+(win.length&&isNum(r[win[0].id].score)?' with '+fmt(r[win[0].id].score):'');
       if(win.length===1){var wid=win[0].id;
-        if(pre.player[wid]==='spoon')twist='The spoon favourite takes gold.';
-        else if(fbE[lastEv.id]===win[0].name)twist='The favourite delivers.';
+        if(fbE[lastEv.id]===win[0].name)twist='The favourite delivers.';
         else if(pre.player[wid]==='fav')twist='The pre-day favourite strikes.';}}
     var t1=ts[0],t2=ts[1],lead=c.T[t1.id].pts,gap=t2?lead-c.T[t2.id].pts:0;
     if(t2&&gap===0)facts.push('<b>Level at the top</b> on '+fmt(lead));
@@ -882,7 +879,7 @@ function profileSheet(s){
     var pc=lf.pc&&lf.pc[me.id],sp=lf.ps&&lf.ps[me.id],pct=function(v){return v==null?'–':(v<0.01?'<1':Math.round(v*100))+'%';};
     h+='<div class="sh-today"><span class="lbl">'+(done?'Today · after '+done+' of '+s.events.length+' events':'Before the day')+'</span><div class="sh-tiles">'
       +(done?'<div><b class="num">'+rankLabel(rk,rr).replace(/^=?(\d+)$/,function(m0,d0){return (m0.charAt(0)==='='?'=':'')+ordinal(+d0);})+'</b><small>of '+s.players.length+'</small></div><div><b class="num">'+fmt(c.P[me.id].pts)+'</b><small>points</small></div>':'')
-      +'<div><b class="num">'+pct(pc)+'</b><small>to be Champion</small></div><div><b class="num">'+pct(sp)+'</b><small>wooden spoon</small></div></div></div>';
+      +'<div><b class="num">'+pct(pc)+'</b><small>to be Champion</small></div></div></div>';
   }
   /* Elo */
   if(P.row){
