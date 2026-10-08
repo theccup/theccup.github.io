@@ -372,6 +372,12 @@ body.sheet-open{overflow:hidden}
 .sh-ban+.sec-note{margin:8px 0 0;font-size:12px}
 .pdetail .pf-go{margin-top:10px}
 tr.unr td{color:var(--muted)}
+.cd{display:flex;align-items:center;gap:16px;background:var(--accent);color:var(--accent-ink);border-radius:var(--r);padding:14px 18px;margin:14px 0 4px;box-shadow:inset 6px 0 0 var(--gold)}
+.cd-n{font-family:var(--f-display);font-weight:900;font-size:68px;line-height:.82;color:#D9B45A;min-width:64px;text-align:center;letter-spacing:.01em}
+.cd.today .cd-n{font-size:34px;min-width:auto}
+.cd-t{min-width:0}.cd .eyebrow{color:#D9B45A}
+.cd h3{margin:2px 0 2px;font-family:var(--f-display);font-weight:800;font-size:24px;text-transform:uppercase;line-height:1}
+.cd p{margin:0;font-size:13px;opacity:.82}
 </style>
 </head>
 <body>
@@ -568,7 +574,7 @@ function render(){
   if(ui.tab==='setup'&&!ui.unlocked)ui.tab='standings';
   h+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'"><svg class="tab-ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+IC[t[0]]+'</svg>'+t[1]+'</button>';}).join('')+'</nav>';
 
-  if(ui.tab==='standings')h+=(s.final?crownBanner(s,c,ts):dayCards(s,c,ts))+renderStandings(s,c,ts,true);
+  if(ui.tab==='standings')h+=(s.final?crownBanner(s,c,ts):countdown(s)+dayCards(s,c,ts))+renderStandings(s,c,ts,true);
   else if(ui.tab==='events')h+=ui.ev&&evById(s,ui.ev)?renderEvent(s,c):renderEvents(s,c);
   else if(ui.tab==='power')h+=renderPower(s);
   else if(ui.tab==='archive')h+=yearPills(s)+(ui.year?renderYear(s):renderArchive(s));
@@ -749,6 +755,16 @@ function snapStandings(s){
   ranked(ts,function(t){return c.T[t.id].pts;}).forEach(function(x){tr[x.it.id]=x.rank;});
   ranked(ps,function(p){return c.P[p.id].pts;}).forEach(function(x){pr[x.it.id]=x.rank;});
   return {c:c,ts:ts,ps:ps,tr:tr,pr:pr};
+}
+/* Countdown to Cup day: shows on Home until the first result is in. Date is set in Setup (YYYY-MM-DD). */
+function cupDate(s){var d=s.date||(String(s.year)==='2026'?'2026-11-14':'');return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:null;}
+function countdown(s){
+  if(s.final||s.events.some(hasResults))return '';var d=cupDate(s);if(!d)return '';
+  var q=d.split('-'),t=new Date(+q[0],+q[1]-1,+q[2]),n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),days=Math.round((t-t0)/864e5);
+  if(days<0)return '';
+  var when=t.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  var big=days===0?'Today':days===1?'1':String(days),lab=days===0?'It\u2019s Cup day':days===1?'Day to go':'Days to go';
+  return '<section class="cd'+(days===0?' today':'')+'"><div class="cd-n num">'+big+'</div><div class="cd-t"><span class="eyebrow">'+lab+'</span><h3>The '+esc(s.year)+' Cup</h3><p>'+esc(when)+' \u00b7 '+s.events.length+' events \u00b7 '+s.players.length+' players</p></div></section>';
 }
 function dayCards(s,c,ts){
   var done=s.events.filter(hasResults),n=s.events.length,cards=[];
@@ -1346,6 +1362,7 @@ function renderSetup(s){
   }
   h+='</div></section>';
   h+='<section><h2>Year</h2><div class="card"><label class="lbl" for="yr">Year</label><input type="text" inputmode="numeric" id="yr" value="'+esc(s.year)+'" data-ch="year">'
+    +'<label class="lbl" for="cdate" style="margin-top:10px;display:block">Cup day</label><input type="date" id="cdate" value="'+esc(cupDate(s)||'')+'" data-ch="date">'
     +'<p class="hint">Scorekeepers sign in with their own email and password. To add one, create a user in Firebase (Authentication) and add their email to the database rules.</p></div></section>';
   return h+'</div>';
 }
@@ -1446,6 +1463,7 @@ APP.addEventListener('change',function(ev){
     if(val==='h2h'){if(!isH2H(ev2)){var nh=newH2H(d.teams);ev2.kind='h2h';ev2.mp=nh.mp;ev2.matches=nh.matches;ev2.scores={};}}
     else{if(isH2H(ev2)){delete ev2.kind;delete ev2.matches;delete ev2.mp;ev2.scores={};}ev2.low=(val==='low');}}
   else if(k==='year'){var y=val.trim();if(y)d.year=y;}
+  else if(k==='date'){var dv=val.trim();if(!dv)delete d.date;else if(/^\d{4}-\d{2}-\d{2}$/.test(dv))d.date=dv;}
   render();
 });
 APP.addEventListener('submit',function(ev){
