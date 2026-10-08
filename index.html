@@ -322,6 +322,55 @@ input.score.ms{width:54px}
 .team.lead .rk{color:#B8870A}
 tr.yjrow td{background:color-mix(in srgb,#F2C230 13%,var(--surface))}
 .rkc.rk1{color:#B8870A}.rkc.rk2{color:#7F8A99}.rkc.rk3{color:#A0653A}
+/* Player profile */
+.plink{border:0;background:none;padding:0;font:inherit;font-weight:inherit;color:inherit;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:1.5px;text-underline-offset:3px}
+.plink:hover{text-decoration-color:var(--gold)}
+body.sheet-open{overflow:hidden}
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(22,33,58,.45);animation:fadein .18s ease}
+.sheet{box-sizing:border-box;position:fixed;z-index:41;left:50%;transform:translateX(-50%);bottom:0;width:min(560px,100%);max-height:88vh;max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--bg);border-radius:18px 18px 0 0;border-top:6px solid var(--tc);padding:16px 16px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.25);animation:sheetup .22s ease}
+@media (min-width:700px){.sheet{bottom:auto;top:50%;transform:translate(-50%,-50%);border-radius:16px;max-height:86vh;animation:fadein .18s ease}}
+@keyframes sheetup{from{transform:translate(-50%,40px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet,.sheet-bg{animation:none}}
+.sh-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.sh-name{font-size:32px;margin:2px 0 6px}
+.sh-x{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:22px;line-height:1;color:var(--muted)}
+.sh-today{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--tc);border-radius:var(--r);padding:10px 12px;margin-bottom:12px}
+.sh-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px;margin-top:6px}
+.sh-tiles b,.cab-t b{display:block;font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1}
+.sh-tiles small,.cab-t small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.2}
+.sh-sec{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:12px}
+.sh-sec>.lbl{display:block;margin-bottom:6px}
+.sh-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sh-elo b{font-family:var(--f-display);font-weight:800;font-size:24px}
+.sh-elo .dash{font-size:12.5px}
+.sh-sec .pw-chart{width:100%;height:auto;display:block;margin-top:4px}
+.cab{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cab-t{text-align:center;border:1px solid var(--line);border-radius:8px;padding:8px 4px;color:var(--muted)}
+.cab-t b{color:var(--muted);opacity:.6}
+.cab-t.on b{color:var(--ink);opacity:1}
+.cab-t.on.gold{border-color:var(--gold);background:rgba(181,139,46,.10)}
+.cab-t.on.gold b{color:var(--gold)}
+.sh-yrs{width:100%;border-collapse:collapse}
+.sh-yrs td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+.sh-yrs tr:last-child td{border-bottom:0}
+.sh-yrs .r{text-align:right;white-space:nowrap}
+.sh-yrs b.num{font-family:var(--f-display);font-weight:800;font-size:19px}
+.sh-y{font-family:var(--f-display);font-weight:800;font-size:19px;color:var(--muted);width:46px}
+.sh-bs{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.sh-bs:empty{display:none}
+.sh-b{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--muted)}
+.sh-b.gold{border-color:var(--gold);color:var(--gold)}
+.bws{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bw-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.bw-top b{font-family:var(--f-display);font-weight:800;font-size:20px}
+.bw-bar{height:6px;border-radius:3px;background:var(--surface-2);margin:4px 0 3px;overflow:hidden}
+.bw-bar i{display:block;height:100%;border-radius:3px}
+.bw.best .bw-bar i{background:var(--good)}.bw.worst .bw-bar i{background:var(--danger)}
+.bw small{font-size:11.5px}
+.bws+.sec-note{margin:8px 0 0;font-size:12px}
+.sh-ban{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.sh-ban+.sec-note{margin:8px 0 0;font-size:12px}
+.pdetail .pf-go{margin-top:10px}
 </style>
 </head>
 <body>
@@ -348,7 +397,7 @@ var state=JSON.parse(document.getElementById('state').textContent);
 if(!state.archive) state.archive=[];
 var draft=null;
 var ui={tab:ss.get('cc-tab')||'standings',ev:ss.get('cc-ev')||null,year:ss.get('cc-year')||null,unlocked:false,user:null,email:'',
-  sortAll:'points',menu:false,pw:null,pwAll:false,allInd:ss.get('cc-allind')==='1',pinOpen:false,pinErr:'',signing:false,confirm:null,saving:false,canWrite:null,toast:null};
+  sortAll:'points',menu:false,pw:null,pwAll:false,allInd:ss.get('cc-allind')==='1',pinOpen:false,pinErr:'',signing:false,confirm:null,saving:false,canWrite:null,toast:null,prof:null};
 
 function cur(){return draft||state;}
 function dirty(){return !!draft&&JSON.stringify(draft)!==JSON.stringify(state);}
@@ -530,8 +579,12 @@ function render(){
     h+='<div class="savebar"><div class="savebar-in"><span class="msg">'+(ui.saving?'Publishing…':d?'Unsaved changes':'Scorekeeper mode · everything saved')+'</span>'
       +(d?'<button class="btn small" data-act="discard"'+(ui.saving?' disabled':'')+'>Discard</button><button class="btn small primary" data-act="save"'+(ui.saving?' disabled':'')+'>Publish scores</button>':'')+'</div></div>';
   }
+  if(ui.prof)h+=profileSheet(s);
   if(ui.toast)h+='<div class="toast" role="status">'+esc(ui.toast)+'</div>';
+  var shOld=document.querySelector('.sheet'),sy=ui.prof&&shOld&&!ui.profFocus?shOld.scrollTop:0;
   APP.innerHTML=h;
+  try{document.body.classList.toggle('sheet-open',!!ui.prof);}catch(e){}
+  if(ui.prof){var shx=document.querySelector('.sheet');if(shx){shx.scrollTop=sy;ui.profFocus=false;}}
   if(ui.tab==='standings')animatePoints();
   if(ui.pinOpen&&!ui.unlocked&&!ui.signing){var pi=document.getElementById(ui.email?'pin-in':'pin-email');if(pi)pi.focus();}
 }
@@ -771,6 +824,88 @@ function crownBanner(s,c,ts){
   if(recs.length)h+='<div class="crown-recs"><span class="lbl">Records broken</span><ul>'+recs.map(function(r){return '<li><b>'+esc(r.title)+':</b> '+names(r.who)+' <span class="num">'+fmt(r.v)+'</span>'+(r.prev!=null?' <span class="dash">(was '+fmt(r.prev)+')</span>':'')+'</li>';}).join('')+'</ul></div>';
   return h+'</section>';
 }
+/* ---------- Player profile ----------
+   One card per player, opened by tapping a name. Everything is worked out from the results already stored:
+   year-by-year finishes, trophy cabinet, Elo, best/worst event (average performance %: 100% = won every time),
+   and head-to-head across individual events (nemesis, favourite victim, biggest upset by pre-event Elo chance). */
+function pLink(n){return '<button class="plink" data-act="prof" data-v="'+esc(n)+'">'+esc(n)+'</button>';}
+function profileData(s,name){
+  var key=nkey(name),ys=allYears(s).slice().reverse(),years=[],tot={champs:0,cups:0,won:0,lost:0,spoons:0,played:0,pts:0},perf={},disp=name;
+  ys.forEach(function(y){
+    var me=y.st.players.filter(function(p){return nkey(p.name)===key;})[0];if(!me)return;disp=me.name;
+    var q=y.c.P[me.id],ps=sortPlayers(y.st,y.c),rr=ranked(ps,function(p){return y.c.P[p.id].pts;}),rank=null;
+    rr.forEach(function(x){if(x.it.id===me.id)rank=x.rank;});
+    var N=y.st.players.length,lastPts=ps.length?y.c.P[ps[ps.length-1].id].pts:null;
+    var cup=!y.live&&y.teamWin.some(function(w){return w.id===me.team;}),champ=!y.live&&y.champs.some(function(p){return p.id===me.id;});
+    var spoon=!y.live&&q.played>0&&q.pts===lastPts;
+    years.push({year:y.a.year,live:y.live,team:teamOf(y.st,me.team),rank:rank,lab:rankLabel(rank,rr),N:N,pts:q.pts,cup:cup,champ:champ,spoon:spoon});
+    tot.played+=q.played;tot.pts+=q.pts;tot.won+=q.won;tot.lost+=q.lost;if(cup)tot.cups++;if(champ)tot.champs++;if(spoon)tot.spoons++;
+    if(N>1)y.st.events.forEach(function(ev){if(ev.kind==='pts'||isH2H(ev))return;var x=y.c.R[ev.id][me.id];if(!x)return;var k=ekey(ev.name);(perf[k]=perf[k]||{name:ev.name,v:[]}).v.push((x.pts-1)/(N-1));});
+  });
+  var ev=Object.keys(perf).map(function(k){var p=perf[k];return {name:p.name,n:p.v.length,avg:p.v.reduce(function(a,b){return a+b;},0)/p.v.length};});
+  var need=ev.some(function(e){return e.n>=2;})?2:1,el=ev.filter(function(e){return e.n>=need;}).sort(function(a,b){return b.avg-a.avg;});
+  var best=el[0]||null,worst=el.length>1?el[el.length-1]:null;
+  /* Head to head + upsets: replay the Elo sequence */
+  var E=eloRun(s,false),R={},meet={},scalp=null;
+  E.seq.forEach(function(e){
+    e.en.forEach(function(x){var k=nkey(x.n);if(R[k]==null)R[k]=ELO_START;});
+    var me=e.en.filter(function(x){return nkey(x.n)===key;})[0],n=e.en.length;
+    if(me&&n>1)e.en.forEach(function(y){if(y===me)return;var b=nkey(y.n),m=meet[b]=meet[b]||{name:y.n,w:0,l:0,d:0};
+      if(me.v>y.v){m.w++;var ch=1/(1+Math.pow(10,(R[b]-R[key])/400));if(ch<0.4&&(!scalp||ch<scalp.ch))scalp={name:y.n,ev:e.ev,year:e.year,ch:ch};}
+      else if(me.v<y.v)m.l++;else m.d++;});
+    if(n<2)return;var nw={};
+    e.en.forEach(function(x){var a=nkey(x.n),act=0,exp=0;e.en.forEach(function(y){if(y===x)return;var b=nkey(y.n);act+=x.v>y.v?1:x.v===y.v?0.5:0;exp+=1/(1+Math.pow(10,(R[b]-R[a])/400));});nw[a]=R[a]+ELO_K*(act-exp)/(n-1);});
+    Object.keys(nw).forEach(function(a){R[a]=nw[a];});
+  });
+  var opp=Object.keys(meet).map(function(k){var m=meet[k];m.t=m.w+m.l+m.d;return m;}).filter(function(m){return m.t>=4;});
+  var nem=opp.filter(function(m){return m.l>m.w;}).sort(function(a,b){return (b.l-b.w)-(a.l-a.w)||b.l/b.t-a.l/a.t;})[0]||null;
+  var vic=opp.filter(function(m){return m.w>m.l;}).sort(function(a,b){return (b.w-b.l)-(a.w-a.l)||b.w/b.t-a.w/a.t;})[0]||null;
+  /* Power ranking */
+  var D=powerData(s),row=D.rows.filter(function(x){return x.key===key;})[0]||null,scope=D.rows.filter(function(x){return row&&row.inField?x.inField:true;}),prank=null;
+  scope.forEach(function(x,i){if(row&&x.key===row.key)prank=i+1;});
+  var peak=row&&row.h.length?Math.max.apply(null,row.h.map(function(q){return q.v;})):null;
+  return {key:key,name:disp,years:years,tot:tot,best:best,worst:worst,nem:nem,vic:vic,scalp:scalp,D:D,row:row,prank:prank,pof:scope.length,peak:peak};
+}
+var CUPIC='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="var(--gold)"/><path d="M7 5H4v1.5A3.5 3.5 0 0 0 7.5 10M17 5h3v1.5A3.5 3.5 0 0 1 16.5 10" fill="none" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13v4M9.5 17h5v4h-5z" fill="var(--gold)" stroke="var(--gold)" stroke-width="1.4"/></svg>';
+function profileSheet(s){
+  var P=profileData(s,ui.prof),me=s.players.filter(function(p){return nkey(p.name)===P.key;})[0]||null,t=me?teamOf(s,me.team):null,col=t?t.color:'#8A8F98';
+  var h='<div class="sheet-bg" data-act="prof-close"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(P.name)+' profile" style="--tc:'+esc(col)+'">'
+    +'<div class="sh-head"><div><p class="eyebrow">Player profile</p><h2 class="sh-name">'+esc(P.name)+'</h2>'
+    +(t?teamChip(t)+' <span class="dash">· '+esc(s.year)+'</span>':'<span class="chip">Not playing '+esc(s.year)+'</span>')+'</div>'
+    +'<button class="sh-x" data-act="prof-close" aria-label="Close">×</button></div>';
+  /* Today */
+  if(me&&!s.final){
+    var c=compute(s),done=s.events.filter(hasResults).length,lf=liveForm(s),ps=sortPlayers(s,c),rr=ranked(ps,function(p){return c.P[p.id].pts;}),rk=null;
+    rr.forEach(function(x){if(x.it.id===me.id)rk=x.rank;});
+    var pc=lf.pc&&lf.pc[me.id],sp=lf.ps&&lf.ps[me.id],pct=function(v){return v==null?'–':(v<0.01?'<1':Math.round(v*100))+'%';};
+    h+='<div class="sh-today"><span class="lbl">'+(done?'Today · after '+done+' of '+s.events.length+' events':'Before the day')+'</span><div class="sh-tiles">'
+      +(done?'<div><b class="num">'+rankLabel(rk,rr).replace(/^=?(\d+)$/,function(m0,d0){return (m0.charAt(0)==='='?'=':'')+ordinal(+d0);})+'</b><small>of '+s.players.length+'</small></div><div><b class="num">'+fmt(c.P[me.id].pts)+'</b><small>points</small></div>':'')
+      +'<div><b class="num">'+pct(pc)+'</b><small>to be Champion</small></div><div><b class="num">'+pct(sp)+'</b><small>wooden spoon</small></div></div></div>';
+  }
+  /* Elo */
+  if(P.row){
+    h+='<div class="sh-sec"><div class="sh-row"><span class="lbl">Power ranking</span><span class="sh-elo"><b class="num">'+Math.round(P.row.r)+'</b> <span class="dash">'+ordinal(P.prank)+' of '+P.pof+(P.peak!=null?' · peak '+Math.round(P.peak):'')+'</span></span></div>'
+      +(P.row.h.length?pwChart(P.row,col,P.D):'<p class="sec-note">New this year. Starts on 1500 and moves after the first event.</p>')+'</div>';
+  }
+  /* Cabinet */
+  var T=P.tot,tile=function(v,l,cls){return '<div class="cab-t'+(v?' on':'')+(cls?' '+cls:'')+'"><b class="num">'+v+'</b><small>'+l+'</small></div>';};
+  h+='<div class="sh-sec"><span class="lbl">Trophy cabinet</span><div class="cab">'+tile(T.champs,'Champion C.U.N.T','gold')+tile(T.cups,'C.U.N.T Cups','gold')+tile(T.won,'Event wins')+tile(T.spoons,'Wooden spoons','spoon')+'</div></div>';
+  /* Year by year */
+  if(P.years.length){
+    h+='<div class="sh-sec"><span class="lbl">Year by year</span><table class="sh-yrs"><tbody>';
+    P.years.slice().reverse().forEach(function(y){
+      var badge=(y.champ?'<span class="sh-b gold">Champion</span>':'')+(y.cup?'<span class="sh-b gold">'+CUPIC+'Cup</span>':'')+(y.spoon?'<span class="sh-b">Spoon</span>':'')+(y.live?'<span class="live-tag">In progress</span>':'');
+      h+='<tr><td class="sh-y num">'+esc(y.year)+'</td><td>'+(y.team?teamChip(y.team):'')+'<div class="sh-bs">'+badge+'</div></td><td class="r"><b class="num">'+(y.lab.charAt(0)==='='?'=':'')+ordinal(y.rank)+'</b><small class="dash"> of '+y.N+'</small></td><td class="r bigpts num">'+fmt(y.pts)+'</td></tr>';});
+    h+='</tbody></table></div>';
+  }
+  /* Best / worst */
+  if(P.best){
+    var bar=function(e,cls){return '<div class="bw '+cls+'"><div class="bw-top"><span class="pl-name">'+esc(e.name)+'</span><b class="num">'+Math.round(e.avg*100)+'%</b></div><div class="bw-bar"><i style="width:'+Math.max(3,Math.round(e.avg*100))+'%"></i></div><small class="dash">'+e.n+' played</small></div>';};
+    h+='<div class="sh-sec"><span class="lbl">Best and worst event</span><div class="bws">'+bar(P.best,'best')+(P.worst?bar(P.worst,'worst'):'')+'</div><p class="sec-note">Average performance: 100% means winning it every time, 0% means finishing last every time.</p></div>';
+  }
+  /* Bragging rights (nemesis, victim, biggest upset) are worked out in profileData but parked for now */
+  return h+'</div>';
+}
 /* ---------- Power ranking (Elo) ----------
    Same method as the track-record workbook (v9): individual events only - team events are left out because a
    partner can help or hinder. Every event is a round robin - you "beat" everyone you finished ahead of. Rating moves by K x (actual - expected) / (players - 1). Start 1500, K 48. */
@@ -869,11 +1004,11 @@ function renderPower(s){
       +(x.n===0?'<small class="mut few">New this year</small>':x.n<6?'<small class="mut few">Few events so far</small>':'')+'</span>'
       +'<span class="psp">'+pwSpark(x,col,D,84,28)+'</span><span class="prt"><b class="num">'+Math.round(x.r)+'</b>'+pwChange(x)+'</span></button>';
     if(open){
-      if(!x.h.length)h+='<div class="pdetail" style="--tc:'+esc(col)+'"><p class="sec-note">No events yet. '+esc(x.name.split(' ')[0])+' starts on 1500 and moves after the first event.</p></div>';
+      if(!x.h.length)h+='<div class="pdetail" style="--tc:'+esc(col)+'"><p class="sec-note">No events yet. '+esc(x.name.split(' ')[0])+' starts on 1500 and moves after the first event.</p><button class="btn small pf-go" data-act="prof" data-v="'+esc(x.name)+'">Full profile →</button></div>';
       else{var best=null;for(var j=1;j<x.h.length;j++){var dl=x.h[j].v-x.h[j-1].v;if(best==null||dl>best.d)best={d:dl,l:x.h[j].label};}
         var pk=Math.max.apply(null,x.h.map(function(q){return q.v;}));
         h+='<div class="pdetail" style="--tc:'+esc(col)+'">'+pwChart(x,col,D)+'<div class="pstats"><div><span class="lbl">Peak</span><b class="num">'+Math.round(pk)+'</b></div><div><span class="lbl">Events rated</span><b class="num">'+x.n+'</b></div>'
-          +(best?'<div><span class="lbl">Best jump</span><b class="num">'+(best.d>=0?'+':'−')+Math.abs(Math.round(best.d))+'</b><small>'+esc(best.l)+'</small></div>':'')+'</div></div>';}
+          +(best?'<div><span class="lbl">Best jump</span><b class="num">'+(best.d>=0?'+':'−')+Math.abs(Math.round(best.d))+'</b><small>'+esc(best.l)+'</small></div>':'')+'</div><button class="btn small pf-go" data-act="prof" data-v="'+esc(x.name)+'">Full profile →</button></div>';}
     }
   });
   return h+'</div>'+(D.prev?'<p class="sec-note" style="margin-top:8px">Arrows next to the rank show places gained or lost after the last event.</p>':'')+'</section>';
@@ -902,7 +1037,7 @@ function renderStandings(s,c,ts,live){
   var shown=ui.allInd?pr:pr.filter(function(x,i){return i<5||(x.rank<=5&&c.P[x.it.id].pts>0);}),hidden=pr.length-shown.length;
   shown.forEach(function(x){var p=x.it,q=c.P[p.id],t=teamOf(s,p.team)||NOTEAM;
     var top=q.pts>0&&x.rank<=3?' rk'+x.rank:'';
-    h+='<tr'+(live&&q.pts>0&&x.rank===1?' class="yjrow"':'')+'><td class="rkc num'+top+'">'+rankLabel(x.rank,pr)+(mv?mvHtml(mv.P[p.id],x.rank):'')+'</td><td><div class="pl-name">'+esc(p.name)+(live&&q.pts>0&&x.rank===1?TROPHY:'')+'</div>'+teamChip(t)+fbTag(fb.player[p.id],fb.player[p.id]==='spoon'?(fb.ps&&fb.ps[p.id]):(fb.pc&&fb.pc[p.id]))+'</td><td>'+medalsHtml(q)+'</td><td class="r bigpts num"'+(live?' data-anim="p:'+esc(p.id)+'" data-val="'+q.pts+'"':'')+'>'+fmt(q.pts)+'</td></tr>';});
+    h+='<tr'+(live&&q.pts>0&&x.rank===1?' class="yjrow"':'')+'><td class="rkc num'+top+'">'+rankLabel(x.rank,pr)+(mv?mvHtml(mv.P[p.id],x.rank):'')+'</td><td><div class="pl-name">'+pLink(p.name)+(live&&q.pts>0&&x.rank===1?TROPHY:'')+'</div>'+teamChip(t)+fbTag(fb.player[p.id],fb.player[p.id]==='spoon'?(fb.ps&&fb.ps[p.id]):(fb.pc&&fb.pc[p.id]))+'</td><td>'+medalsHtml(q)+'</td><td class="r bigpts num"'+(live?' data-anim="p:'+esc(p.id)+'" data-val="'+q.pts+'"':'')+'>'+fmt(q.pts)+'</td></tr>';});
   h+='</tbody></table></div>';
   if(hidden>0||ui.allInd&&pr.length>5) h+='<button class="btn small ghost more-btn" data-act="toggle-ind" aria-expanded="'+ui.allInd+'">'+(ui.allInd?'Show top 5 only':'Show all '+pr.length+' players')+'</button>';
   h+=(mv?'<p class="sec-note" style="margin-top:8px">Arrows show places gained or lost after '+esc(mv.after)+'.</p>':'')+'</section></div>';
@@ -1037,7 +1172,7 @@ function renderEvent(s,c){
     var ents=s.players.slice().sort(function(a,b){var A=teamOf(s,a.team)||NOTEAM,B=teamOf(s,b.team)||NOTEAM;return A.name.localeCompare(B.name)||a.name.localeCompare(b.name);});
     h+='<div class="tbl-wrap"><table class="score-tbl"><thead><tr><th>Player</th><th class="r">Score</th><th class="c">Place</th><th class="r">Pts</th></tr></thead><tbody>';
     ents.forEach(function(p){var x=r[p.id],t=teamOf(s,p.team)||NOTEAM;
-      h+='<tr><td><div class="pl-name">'+esc(p.name)+'</div>'+teamChip(t)+'</td>'
+      h+='<tr><td><div class="pl-name">'+pLink(p.name)+'</div>'+teamChip(t)+'</td>'
         +'<td class="r"><input class="score" type="text" inputmode="decimal" autocomplete="off" id="sc-'+esc(p.id)+'" data-sc="'+esc(p.id)+'" value="'+(isNum(sc[p.id])?esc(sc[p.id]):'')+'" aria-label="Score for '+esc(p.name)+'"></td>'
         +'<td class="c num" id="pp-'+esc(p.id)+'">'+(x?ordinal(x.place):'–')+'</td><td class="r bigpts num" id="pt-'+esc(p.id)+'">'+(x?fmt(x.pts):'–')+'</td></tr>';});
     return h+'</tbody></table></div></section>';
@@ -1052,7 +1187,7 @@ function resultsTable(s,r){
   var h='<div class="tbl-wrap"><table><thead><tr><th>Place</th><th>Player</th><th class="r">Score</th><th class="r">Pts</th></tr></thead><tbody>';
   placed.forEach(function(p){var x=r[p.id],pl=x.place,t=teamOf(s,p.team)||NOTEAM;
     var md=pl<=3?'<span class="medal '+(pl===1?'g':pl===2?'s':'b')+'">'+pl+'</span>':'<span class="num">'+pl+'</span>';
-    h+='<tr><td class="rkc">'+(counts[pl]>1?'<span class="dash">=</span>':'')+md+'</td><td><div class="pl-name">'+esc(p.name)+'</div>'+teamChip(t)+'</td><td class="r num">'+fmt(x.score)+'</td><td class="r bigpts num">'+fmt(x.pts)+'</td></tr>';});
+    h+='<tr><td class="rkc">'+(counts[pl]>1?'<span class="dash">=</span>':'')+md+'</td><td><div class="pl-name">'+pLink(p.name)+'</div>'+teamChip(t)+'</td><td class="r num">'+fmt(x.score)+'</td><td class="r bigpts num">'+fmt(x.pts)+'</td></tr>';});
   var missing=s.players.length-placed.length;
   return h+'</tbody></table></div>'+(missing?'<p class="sec-note" style="margin-top:8px">'+missing+' without a score get 0 points.</p>':'');
 }
@@ -1106,7 +1241,7 @@ function renderArchive(s){
     h+='<p class="sec-note">Tap a year for its full standings and results. There was no Cup in 2022.</p><div class="tbl-wrap"><table class="honour"><thead><tr><th>Year</th><th>C.U.N.T Cup</th><th>Champion C.U.N.T</th></tr></thead><tbody>';
     ys.forEach(function(y){
       var tw=y.teamWin.length?y.teamWin.map(function(t){return '<div>'+teamChip(t,true)+'<div class="who">'+names(membersOf(y,t))+'</div></div>';}).join(''):'<span class="dash">–</span>';
-      var ch=y.champs.length?y.champs.map(function(p){return '<div class="pl-name">'+esc(p.name)+' <span class="dash num">· '+fmt(y.c.P[p.id].pts)+' pts</span></div>';}).join(''):'<span class="dash">–</span>';
+      var ch=y.champs.length?y.champs.map(function(p){return '<div class="pl-name">'+pLink(p.name)+' <span class="dash num">· '+fmt(y.c.P[p.id].pts)+' pts</span></div>';}).join(''):'<span class="dash">–</span>';
       h+='<tr><td><button class="year-btn num" data-act="open-year" data-v="'+esc(y.a.year)+'">'+esc(y.a.year)+'</button>'+(y.live?'<span class="live-tag">In progress</span>':'')+'</td><td>'+tw+'</td><td>'+ch+'</td></tr>';
     });
     h+='</tbody></table></div>';
@@ -1135,7 +1270,7 @@ function renderAllTime(s,ys){
     +'</div></div><p class="sec-note">Every Cup since 2021, plus '+esc(s.year)+' so far. Won is an event win; lost is finishing last. Per event is CC points divided by events played.</p>'
     +'<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Player</th><th class="c">Played</th><th class="c">Won</th><th class="c">Lost</th><th class="c">Cups</th><th class="c">Champion</th><th class="r">Per event</th><th class="r">CC Pts</th></tr></thead><tbody>';
   function z(n){return n?n:'<span class="dash">0</span>';}
-  rr.forEach(function(x){var m=x.it;h+='<tr><td class="rkc num">'+rankLabel(x.rank,rr)+'</td><td class="pl-name">'+esc(m.name)+'</td><td class="c num">'+m.played+'</td><td class="c num">'+z(m.won)+'</td><td class="c num">'+z(m.lost)+'</td><td class="c num">'+z(m.cups)+'</td><td class="c num">'+z(m.champs)+'</td><td class="r num">'+(m.played?m.avg.toFixed(2):'<span class="dash">\u2013</span>')+'</td><td class="r bigpts num">'+fmt(m.pts)+'</td></tr>';});
+  rr.forEach(function(x){var m=x.it;h+='<tr><td class="rkc num">'+rankLabel(x.rank,rr)+'</td><td class="pl-name">'+pLink(m.name)+'</td><td class="c num">'+m.played+'</td><td class="c num">'+z(m.won)+'</td><td class="c num">'+z(m.lost)+'</td><td class="c num">'+z(m.cups)+'</td><td class="c num">'+z(m.champs)+'</td><td class="r num">'+(m.played?m.avg.toFixed(2):'<span class="dash">\u2013</span>')+'</td><td class="r bigpts num">'+fmt(m.pts)+'</td></tr>';});
   return h+'</tbody></table></div></section>';
 }
 function yearPills(s){
@@ -1213,6 +1348,8 @@ APP.addEventListener('click',function(ev){
     case 'sort-all':ui.sortAll=v;break;
     case 'lu-go':var tr=document.getElementById('lu-track');if(tr){var cw=tr.clientWidth;tr.scrollTo({left:cw*(+v),behavior:'smooth'});}return;
     case 'pw-open':ui.pw=(ui.pw===v)?null:v;break;
+    case 'prof':ui.prof=v;ui.profFocus=true;break;
+    case 'prof-close':ui.prof=null;break;
     case 'pw-scope':ui.pwAll=(v==='all');break;
     case 'pw-go':ui.tab='power';ui.pw=v;ss.set('cc-tab','power');window.scrollTo(0,0);break;
     case 'toggle-ind':ui.allInd=!ui.allInd;if(ui.allInd)ss.set('cc-allind','1');else ss.del('cc-allind');break;
@@ -1249,6 +1386,7 @@ APP.addEventListener('click',function(ev){
   }
   render();
 });
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&ui.prof){ui.prof=null;render();}});
 APP.addEventListener('input',function(ev){
   var el=ev.target,d,v;
   if(el.hasAttribute('data-ms')){
