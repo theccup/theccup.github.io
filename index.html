@@ -1295,13 +1295,16 @@ function renderAllTime(s,ys){
   function get(name){var k=nkey(name);if(!M[k])M[k]={name:name,played:0,won:0,lost:0,cups:0,champs:0,pts:0,pct:null,ok:false};return M[k];}
   ((s.legacy||{}).players||[]).forEach(function(l){var m=get(l.name);['played','won','lost','cups','champs','pts'].forEach(function(f){m[f]+=+l[f]||0;});});
   s.players.forEach(function(p){get(p.name);});
+  var ind=ui.pctMode!=='all';
   ys.forEach(function(y){
-    y.st.players.forEach(function(p){var q=y.c.P[p.id],m=get(p.name);m.name=p.name;m.played+=q.played;m.won+=q.won;m.lost+=q.lost;m.pts+=q.pts;});
+    if(ind)y.st.events.forEach(function(ev){if(!hasResults(ev)||ev.kind==='pts'||isH2H(ev))return;var r=y.c.R[ev.id];
+      y.st.players.forEach(function(p){var x=r[p.id];if(!x)return;var m=get(p.name);m.name=p.name;m.played++;m.pts+=x.pts;if(x.place===1)m.won++;if(x.last)m.lost++;});});
+    else y.st.players.forEach(function(p){var q=y.c.P[p.id],m=get(p.name);m.name=p.name;m.played+=q.played;m.won+=q.won;m.lost+=q.lost;m.pts+=q.pts;});
     if(y.live)return;
     y.teamWin.forEach(function(t){membersOf(y,t).forEach(function(n){get(n).cups++;});});
     y.champs.forEach(function(p){get(p.name).champs++;});
   });
-  var ind=ui.pctMode!=='all',CP=careerPerf(ys,ind);Object.keys(M).forEach(function(k){M[k].shown=ind?0:M[k].played;});Object.keys(CP.M).forEach(function(k){if(M[k]){M[k].pct=CP.M[k].pct;M[k].ok=CP.M[k].n>=PCT_MIN;if(ind)M[k].shown=CP.M[k].n;}});
+  var CP=careerPerf(ys,ind);Object.keys(M).forEach(function(k){M[k].shown=M[k].played;});Object.keys(CP.M).forEach(function(k){if(M[k]){M[k].pct=CP.M[k].pct;M[k].ok=CP.M[k].n>=PCT_MIN;}});
   var rows=Object.keys(M).map(function(k){return M[k];});
   if(!rows.length)return '';
   var key={points:function(m){return [m.pts,m.won,-m.lost];},wins:function(m){return [m.won,m.pts,-m.lost];},titles:function(m){return [m.cups+m.champs,m.champs,m.pts];},pct:function(m){return [m.ok?1:0,m.pct==null?-1:Math.round(m.pct*1000),m.shown,m.pts];}}[ui.sortAll]||function(m){return [m.pts];};
@@ -1310,10 +1313,10 @@ function renderAllTime(s,ys){
   var unr=function(m){return ui.sortAll==='pct'&&!m.ok;};
   var h='<section><div class="sec-head"><h2>All-time statistics</h2><div class="sortbar" aria-label="Sort all-time table">'
     +[['pct','Avg %'],['points','Points'],['wins','Wins'],['titles','Titles']].map(function(o){return '<button class="tab" data-act="sort-all" data-v="'+o[0]+'" aria-selected="'+(ui.sortAll===o[0])+'">'+o[1]+'</button>';}).join('')
-    +'</div></div><div class="pctmode"><span class="lbl">Avg % counts</span><div class="seg" role="group" aria-label="Which events Avg % counts">'
+    +'</div></div><div class="pctmode"><span class="lbl">Count</span><div class="seg" role="group" aria-label="Which events the table counts">'
     +[['ind','Individual events'],['all','All events']].map(function(o){return '<button data-act="pct-mode" data-v="'+o[0]+'" aria-pressed="'+((o[0]==='ind')===ind)+'">'+o[1]+'</button>';}).join('')+'</div></div>'
-    +'<p class="sec-note">Every Cup since 2021, plus '+esc(s.year)+' so far. Avg % is average performance per event: 1st scores 100%, last 0%, whatever the field size. '+(ind?'Individual events only \u2013 team events are left out because your partners share the result.':'Every event, team events included.')+' You need '+PCT_MIN+' events to be ranked on it. '+(ind?'Played counts individual events only; ':'')+'Won is an event win; lost is finishing last.</p>'
-    +'<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Player</th><th class="r">Avg %<small class="th-sub">'+(ind?'Indiv':'All')+'</small></th><th class="r">CC Pts</th><th class="c">Played</th><th class="c">Won</th><th class="c">Lost</th><th class="c">Cups</th><th class="c">Champion</th></tr></thead><tbody>';
+    +'<p class="sec-note">Every Cup since 2021, plus '+esc(s.year)+' so far. Avg % is average performance per event: 1st scores 100%, last 0%, whatever the field size. '+(ind?'Counting individual events only, as partners share a team result. Cups and Champion always count every title.':'Every event, team events included.')+' You need '+PCT_MIN+' events to be ranked on Avg %. Won is an event win; lost is finishing last.</p>'
+    +'<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Player</th><th class="r">Avg %<small class="th-sub">'+(ind?'Indiv':'All')+'</small></th><th class="r">CC Pts<small class="th-sub">'+(ind?'Indiv':'All')+'</small></th><th class="c">Played</th><th class="c">Won</th><th class="c">Lost</th><th class="c">Cups</th><th class="c">Champion</th></tr></thead><tbody>';
   function z(n){return n?n:'<span class="dash">0</span>';}
   rr.forEach(function(x){var m=x.it;h+='<tr'+(unr(m)?' class="unr"':'')+'><td class="rkc num">'+(unr(m)?'<span class="dash">\u2013</span>':rankLabel(x.rank,rr))+'</td><td class="pl-name">'+pLink(m.name)+'</td><td class="r num'+(ui.sortAll==='pct'&&m.ok?' bigpts':'')+'">'+(m.pct!=null?pctTxt(m.pct):'<span class="dash">\u2013</span>')+'</td><td class="r num'+(ui.sortAll==='pct'?'':' bigpts')+'">'+fmt(m.pts)+'</td><td class="c num">'+m.shown+'</td><td class="c num">'+z(m.won)+'</td><td class="c num">'+z(m.lost)+'</td><td class="c num">'+z(m.cups)+'</td><td class="c num">'+z(m.champs)+'</td></tr>';});
   return h+'</tbody></table></div></section>';
