@@ -1257,7 +1257,7 @@ function renderArchive(s){
         else if(x.score===e.best&&e.yr===y.a.year&&e.by.indexOf(esc(p.name))<0){e.by+=' &amp; '+esc(p.name);}});
     });
   });
-  order.forEach(function(k){var e=E[k];if(!e.holder&&e.best==null)return;h+=row(esc(e.name)+(e.low?' <span class="rec-by">(lowest wins)</span>':''),e.holder,e.best,e.by,e.yr,e.nw);});
+  order.forEach(function(k){var e=E[k];if(!e.holder&&e.best==null)return;h+=row(esc(e.name),e.holder,e.best,e.by,e.yr,e.nw);});
   h+='</tbody></table></div></section>';
 
   h+='<section><h2>Roll of honour</h2>';
