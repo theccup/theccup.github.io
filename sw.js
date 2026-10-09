@@ -1,5 +1,5 @@
 // Network first, so the app is always up to date when there's signal; falls back to the cached copy offline.
-const CACHE='cup-v9';
+const CACHE='cup-v10';
 const SHELL=['./','index.html','firebase.js','manifest.webmanifest','icon-192.png','apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
