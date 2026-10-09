@@ -769,10 +769,10 @@ function snapStandings(s){
 }
 /* Countdown to Cup day: shows on Home until the first result is in. Date is set in Setup (YYYY-MM-DD). */
 function cupDate(s){var d=s.date||(String(s.year)==='2026'?'2026-11-14':'');return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:null;}
-/* Day referee: shown at the top of Home. Set in Setup; blank hides it. */
+/* Cup referee: shown at the top of Home. Set in Setup; blank hides it. */
 function refName(s){return s.referee!=null?String(s.referee).trim():(String(s.year)==='2026'?'Andrew Wilkie':'');}
 function refBar(s){var r=refName(s);if(!r)return '';
-  return '<div class="refbar"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="14" r="6"/><path d="M13.5 10 21 6v4l-6 2"/><path d="M9 14h.01"/></svg><span class="lbl">Day referee</span><b>'+pLink(r)+'</b></div>';}
+  return '<div class="refbar"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="14" r="6"/><path d="M13.5 10 21 6v4l-6 2"/><path d="M9 14h.01"/></svg><span class="lbl">Cup referee</span><b>'+pLink(r)+'</b></div>';}
 function countdown(s){
   if(s.final||s.events.some(hasResults))return '';var d=cupDate(s);if(!d)return '';
   var q=d.split('-'),t=new Date(+q[0],+q[1]-1,+q[2]),n=new Date(),t0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),days=Math.round((t-t0)/864e5);
@@ -1384,7 +1384,7 @@ function renderSetup(s){
   h+='</div></section>';
   h+='<section><h2>Year</h2><div class="card"><label class="lbl" for="yr">Year</label><input type="text" inputmode="numeric" id="yr" value="'+esc(s.year)+'" data-ch="year">'
     +'<label class="lbl" for="cdate" style="margin-top:10px;display:block">Cup day</label><input type="date" id="cdate" value="'+esc(cupDate(s)||'')+'" data-ch="date">'
-    +'<label class="lbl" for="cref" style="margin-top:10px;display:block">Day referee</label><input type="text" id="cref" value="'+esc(refName(s))+'" data-ch="referee" placeholder="Leave blank to hide">'
+    +'<label class="lbl" for="cref" style="margin-top:10px;display:block">Cup referee</label><input type="text" id="cref" value="'+esc(refName(s))+'" data-ch="referee" placeholder="Leave blank to hide">'
     +'<p class="hint">Scorekeepers sign in with their own email and password. To add one, create a user in Firebase (Authentication) and add their email to the database rules.</p></div></section>';
   return h+'</div>';
 }
