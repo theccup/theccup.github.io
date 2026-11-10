@@ -21,6 +21,27 @@ html{-webkit-text-size-adjust:100%}
 body{margin:0}
 img{max-width:100%}[hidden]{display:none!important}
 .pin input[type=email],.pin input[type=password]{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font:inherit;width:100%}
+.chal-inc{color:var(--gold);font-weight:600}
+.chal-card{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.chal-card h3{margin:0;font-family:var(--f-display);font-weight:800;font-size:20px;text-transform:uppercase}
+.chal-tbl{width:100%;border-collapse:collapse;margin-top:6px}.chal-tbl th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px}
+.chal-tbl td{padding:6px 4px;border-top:1px solid var(--line)}.chal-tbl .c{text-align:center}.chal-tbl .r{text-align:right}
+.chal-tbl b{font-family:var(--f-display);font-weight:800;font-size:19px}
+.chal-card .sec-note{margin:8px 0 0;font-size:12px}
+.chal-team{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:14px;white-space:nowrap}
+.chal-team:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--tc)}
+.chal-games{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.chal-game{background:var(--surface);border:1px solid var(--line);border-top:5px solid var(--tc);border-radius:var(--r);padding:10px 12px}
+.cg-head{display:flex;flex-direction:column;gap:2px}.cg-head b{font-family:var(--f-display);font-weight:800;font-size:22px;text-transform:uppercase;line-height:1.05}
+.cg-name{margin-top:4px}
+.chal-game ul{list-style:none;margin:8px 0 0;padding:0}
+.chal-game li{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:7px 0;border-top:1px solid var(--line)}
+.cg-side{display:flex;align-items:center;gap:6px;min-width:0}.cg-side.r{justify-content:flex-end}
+button.cg-side{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 10px;font:inherit;color:inherit;cursor:pointer;min-height:40px}
+button.cg-side.won{border-color:var(--good);background:rgba(46,125,80,.10)}
+.cg-side.lost{opacity:.45}.cg-v{color:var(--muted);font-size:12px}
+.cg-w{font-style:normal;font-size:11px;font-weight:800;color:#fff;background:var(--good);border-radius:999px;padding:1px 6px}
+.cg-tbc{grid-column:1/-1;font-size:11px;color:var(--muted);text-align:center;margin-top:-2px;letter-spacing:.06em;text-transform:uppercase}
 </style>
 <style id="app-style">
 /* Layout: stadium scoreboard — condensed display numerals, team-colour stripes, standings first, events second, archive as a roll of honour */
@@ -486,6 +507,38 @@ function evalEvent(ev,s){
   if(list.length>1){var ls=list[list.length-1].score;list.forEach(function(x){if(x.score===ls)out[x.id].last=true;});}
   return out;
 }
+
+/* ---------- Side challenges ----------
+   Each team brings a game. Every pair of teams meets twice, home and away: once at each team's game (12 matches).
+   3 points a win, max 18 a team. Points go to the team total only, never to players, Elo or all-time stats.
+   s.chal = {games:{teamId:name}, res:{'hostId|oppId':winnerId}}. */
+var CH_WIN=3;
+/* Team records use event points only: side-challenge points decide the Cup on the day but never count towards records. */
+function evPts(c,id){var x=c.T[id];return x.pts-(x.chal||0);}
+function chalOn(s){return s.chal?s.chal.on!==false:String(s.year)==='2026';}
+function chalFixtures(s){var F=[];s.teams.forEach(function(h){s.teams.forEach(function(o){if(o.id!==h.id)F.push({host:h.id,a:h.id,b:o.id,key:h.id+'|'+o.id});});});return F;}
+function chalTable(s){var T={};s.teams.forEach(function(t){T[t.id]={p:0,w:0,l:0,pts:0};});if(!s.chal)return T;
+  chalFixtures(s).forEach(function(f){var w=(s.chal.res||{})[f.key];if(!w||(w!==f.a&&w!==f.b))return;var l=w===f.a?f.b:f.a;T[w].p++;T[w].w++;T[w].pts+=CH_WIN;T[l].p++;T[l].l++;});return T;}
+function chalDone(s){var r=(s.chal&&s.chal.res)||{};return chalFixtures(s).filter(function(f){return r[f.key]===f.a||r[f.key]===f.b;}).length;}
+function chalChip(t){return '<span class="chal-team" style="--tc:'+esc(t.color)+'">'+esc(t.name)+'</span>';}
+function chalHome(s){if(!chalOn(s)||s.teams.length<2||!chalDone(s))return '';var T=chalTable(s),n=chalFixtures(s).length,done=chalDone(s),mx=CH_WIN*2*(s.teams.length-1);
+  var ts=s.teams.slice().sort(function(a,b){return T[b.id].pts-T[a.id].pts||T[b.id].w-T[a.id].w||a.name.localeCompare(b.name);});
+  var h='<div class="chal-card"><div class="sec-head"><h3>Side challenges</h3><button class="seeall" data-act="tab" data-v="events">'+done+' of '+n+' played →</button></div>'
+   +'<table class="chal-tbl"><thead><tr><th>Team</th><th class="c">P</th><th class="c">W</th><th class="r">Pts</th></tr></thead><tbody>';
+  ts.forEach(function(t){var x=T[t.id];h+='<tr><td>'+chalChip(t)+'</td><td class="c num">'+x.p+'</td><td class="c num">'+x.w+'</td><td class="r num"><b>'+x.pts+'</b><small class="dash"> / '+mx+'</small></td></tr>';});
+  return h+'</tbody></table><p class="sec-note">3 points a win. These count towards team totals only, not individual scores or all-time stats.</p></div>';}
+function chalFull(s){if(!chalOn(s)||s.teams.length<2)return '';var res=(s.chal&&s.chal.res)||{},games=(s.chal&&s.chal.games)||{},F=chalFixtures(s),ed=ui.unlocked&&!s.final,mx=CH_WIN*2*(s.teams.length-1);
+  var h='<section><div class="sec-head"><h2>Side challenges</h2><span class="lbl">Team points only</span></div><p class="sec-note">Each team brings a game and plays the other '+(s.teams.length-1)+' at it, so everyone meets twice: home and away. 3 points a win, up to '+mx+' a team.'+(ed?' Tap the winning team; tap again to clear.':'')+'</p><div class="chal-games">';
+  s.teams.forEach(function(ht){var g=games[ht.id]||'';
+    h+='<div class="chal-game" style="--tc:'+esc(ht.color)+'"><div class="cg-head"><span class="lbl">'+esc(ht.name)+'’s game</span>'
+      +(ed?'<input type="text" class="cg-name" data-ch="chal-game" data-v="'+esc(ht.id)+'" value="'+esc(g)+'" placeholder="Name the game" aria-label="'+esc(ht.name)+'’s game">':'<b>'+(g?esc(g):'Revealed on the day')+'</b>')+'</div><ul>';
+    F.filter(function(f){return f.host===ht.id;}).forEach(function(f){var a=teamOf(s,f.a),b=teamOf(s,f.b),w=res[f.key];if(w!==f.a&&w!==f.b)w=null;
+      var side=function(t,r){var cls='cg-side'+(r?' r':'')+(w?(w===t.id?' won':' lost'):'');
+        if(ed)return '<button class="'+cls+'" data-act="chal-res" data-v="'+esc(f.key+'#'+t.id)+'" aria-pressed="'+(w===t.id)+'" aria-label="'+esc(t.name)+' won">'+chalChip(t)+(w===t.id?'<i class="cg-w">+3</i>':'')+'</button>';
+        return '<span class="'+cls+'">'+chalChip(t)+(w===t.id?'<i class="cg-w">+3</i>':'')+'</span>';};
+      h+='<li>'+side(a)+'<span class="cg-v">v</span>'+side(b,1)+(w?'':'<span class="cg-tbc">'+(ed?'Tap the winner':'To play')+'</span>')+'</li>';});
+    h+='</ul></div>';});
+  return h+'</div></section>';}
 function compute(s){
   var P={},T={},R={};
   s.players.forEach(function(p){P[p.id]={pts:0,g:0,s:0,b:0,played:0,won:0,lost:0,by:{}};});
@@ -501,6 +554,7 @@ function compute(s){
       if(T[p.team]){T[p.team].pts+=x.pts;T[p.team].by[ev.id]+=x.pts;}
     });
   });
+  var CT=chalTable(s);s.teams.forEach(function(t){T[t.id].chal=CT[t.id].pts;T[t.id].pts+=CT[t.id].pts;});
   return {P:P,T:T,R:R};
 }
 function ranked(list,key){var out=[],prev=null,rank=0;list.forEach(function(it,i){var k=key(it);if(k!==prev){rank=i+1;prev=k;}out.push({it:it,rank:rank});});return out;}
@@ -517,7 +571,10 @@ function toArchive(s){
     events:s.events.filter(hasResults).map(function(e){
       if(e.kind==='pts'){var pn={};Object.keys(e.points||{}).forEach(function(id){if(nameOf[id])pn[nameOf[id]]=e.points[id];});return {name:e.name,kind:'pts',points:pn};}
       if(isH2H(e)){var tn={};s.teams.forEach(function(t){tn[t.id]=t.name;});return {name:e.name,kind:'h2h',mp:e.mp,matches:(e.matches||[]).map(function(m){return {a:tn[m.a],b:tn[m.b],round:m.round,sa:m.sa,sb:m.sb,res:m.res};})};}
-      var r={};Object.keys(e.scores).forEach(function(id){if(isNum(e.scores[id])&&nameOf[id])r[nameOf[id]]=+e.scores[id];});return {name:e.name,low:!!e.low,scores:r};})};
+      var r={};Object.keys(e.scores).forEach(function(id){if(isNum(e.scores[id])&&nameOf[id])r[nameOf[id]]=+e.scores[id];});return {name:e.name,low:!!e.low,scores:r};}),
+    chal:(function(){if(!s.chal||!chalDone(s))return undefined;var tn={};s.teams.forEach(function(t){tn[t.id]=t.name;});var g={},r={};
+      Object.keys(s.chal.games||{}).forEach(function(id){if(tn[id])g[tn[id]]=s.chal.games[id];});
+      chalFixtures(s).forEach(function(f){var w=s.chal.res[f.key];if(w===f.a||w===f.b)r[tn[f.a]+'|'+tn[f.b]]=tn[w];});return {games:g,res:r};})()};
 }
 function archiveToState(a){
   var st={year:a.year,teams:[],players:[],events:[]},idOf={};
@@ -535,6 +592,9 @@ function archiveToState(a){
     Object.keys(e.scores||{}).forEach(function(n){var k=nkey(n);if(!idOf[k]){var pid='p'+st.players.length;idOf[k]=pid;st.players.push({id:pid,name:n,team:null});}r[idOf[k]]=e.scores[n];});
     st.events.push({id:'e'+i,name:e.name,low:!!e.low,scores:r});
   });
+  if(a.chal){var tid={};st.teams.forEach(function(t){tid[nkey(t.name)]=t.id;});st.chal={games:{},res:{}};
+    Object.keys(a.chal.games||{}).forEach(function(n){if(tid[nkey(n)])st.chal.games[tid[nkey(n)]]=a.chal.games[n];});
+    Object.keys(a.chal.res||{}).forEach(function(k){var q=k.split('|'),x=tid[nkey(q[0])],y=tid[nkey(q[1]||'')],w=tid[nkey(a.chal.res[k])];if(x&&y&&w)st.chal.res[x+'|'+y]=w;});}
   return st;
 }
 function summarise(a,live){
@@ -547,7 +607,7 @@ function summarise(a,live){
 }
 function allYears(s){
   var ys=(s.archive||[]).map(function(a){return summarise(a,false);});
-  if(s.events.some(hasResults)&&!(s.archive||[]).some(function(a){return String(a.year)===String(s.year);}))ys.push(summarise(toArchive(s),true));
+  if((s.events.some(hasResults)||(chalOn(s)&&chalDone(s)))&&!(s.archive||[]).some(function(a){return String(a.year)===String(s.year);}))ys.push(summarise(toArchive(s),true));
   return ys.sort(function(x,y){return (parseInt(y.a.year,10)||0)-(parseInt(x.a.year,10)||0);});
 }
 function membersOf(sm,t){return sm.st.players.filter(function(p){return p.team===t.id;}).map(function(p){return p.name;});}
@@ -586,7 +646,7 @@ function render(){
   h+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'"><svg class="tab-ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+IC[t[0]]+'</svg>'+t[1]+'</button>';}).join('')+'</nav>';
 
   if(ui.tab==='standings')h+=refBar(s)+(s.final?crownBanner(s,c,ts):countdown(s)+dayCards(s,c,ts))+renderStandings(s,c,ts,true);
-  else if(ui.tab==='events')h+=ui.ev&&evById(s,ui.ev)?renderEvent(s,c):renderEvents(s,c);
+  else if(ui.tab==='events')h+=ui.ev&&evById(s,ui.ev)?renderEvent(s,c):renderEvents(s,c)+chalFull(s);
   else if(ui.tab==='power')h+=renderPower(s);
   else if(ui.tab==='archive')h+=yearPills(s)+(ui.year?renderYear(s):renderArchive(s));
   else if(ui.tab==='setup')h+=renderSetup(s);
@@ -643,10 +703,11 @@ function recordsSet(s){
     if(top!=null&&(best==null||better(top,best,low)))out.push({title:ev.name,v:top,who:who,prev:best});
   });
   var cbs={},hb=Lg.champion?Lg.champion.best:null;
-  prior.forEach(function(y){y.teams.forEach(function(t){var z=teamSizeOf(y.st,t),v=y.c.T[t.id].pts;if(cbs[z]==null||v>cbs[z])cbs[z]=v;});y.st.players.forEach(function(p){var v=y.c.P[p.id].pts;if(hb==null||v>hb)hb=v;});});
+  prior.forEach(function(y){y.teams.forEach(function(t){var z=teamSizeOf(y.st,t),v=evPts(y.c,t.id);if(cbs[z]==null||v>cbs[z])cbs[z]=v;});y.st.players.forEach(function(p){var v=y.c.P[p.id].pts;if(hb==null||v>hb)hb=v;});});
   var c=compute(s),ts=sortTeams(s,c),ps=sortPlayers(s,c);
-  if(ts.length){var tv=c.T[ts[0].id].pts,sz=teamSizeOf(s,ts[0]),cb=cbs[sz]==null?null:cbs[sz];
-    if(tv>0&&(cb==null||tv>cb))out.unshift({title:'C.U.N.T Cup team total ('+sizeLabel(sz)+')',v:tv,who:ts.filter(function(t){return c.T[t.id].pts===tv;}).map(function(t){return t.name;}),prev:cb});}
+  var tsE=ts.slice().sort(function(a,b){return evPts(c,b.id)-evPts(c,a.id);});
+  if(tsE.length){var tv=evPts(c,tsE[0].id),sz=teamSizeOf(s,tsE[0]),cb=cbs[sz]==null?null:cbs[sz];
+    if(tv>0&&(cb==null||tv>cb))out.unshift({title:'C.U.N.T Cup team total ('+sizeLabel(sz)+')',v:tv,who:tsE.filter(function(t){return evPts(c,t.id)===tv;}).map(function(t){return t.name;}),prev:cb});}
   if(ps.length){var pv=c.P[ps[0].id].pts;if(pv>0&&(hb==null||pv>hb))out.unshift({title:'Individual season total',v:pv,who:ps.filter(function(p){return c.P[p.id].pts===pv;}).map(function(p){return p.name;}),prev:hb});}
   return out;
 }
@@ -655,6 +716,7 @@ function recordsSet(s){
 function preDay(s){
   var cy=String(s.year),s0=clone(s);
   s0.archive=(s0.archive||[]).filter(function(a){return String(a.year)!==cy;});
+  if(s0.chal)s0.chal.res={};
   s0.events.forEach(function(e){e.scores={};if(e.matches)e.matches.forEach(function(m){m.res=null;m.sa='';m.sb='';});if(e.points)e.points={};});
   s0.final=false;return s0;
 }
@@ -710,7 +772,7 @@ function formBookLine(s,c,ts){
    Calibrated so the pre-day chances match the workbook (James ~19%, Michael ~18%, Team 1 ~63%). */
 var _lfCache={key:null,val:null};
 function liveForm(s){
-  var key=JSON.stringify([s.year,s.players,s.events]);
+  var key=JSON.stringify([s.year,s.players,s.events,chalOn(s)?s.chal||null:null]);
   if(_lfCache.key===key)return _lfCache.val;
   var c=compute(s),E=eloRun(s,false),P=s.players,N=P.length,out={player:{},team:{},pc:{},ps:{},tc:{}};
   if(N<2){_lfCache={key:key,val:out};return out;}
@@ -724,7 +786,8 @@ function liveForm(s){
   function gauss(){var u=rnd()||1e-9,v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
   var adj=s.eventAdj||{},LUCK={darts:0.8,bowling:0.9,minigolf:1};
   function bonus(ev,i){var a=adj[ekey(ev.name)];if(!a)return 0;var v=a[nkey(P[i].name)];return v==null?0:v;}
-  var IT=rem.length?3000:1,SD=195,win=new Array(N).fill(0),last=new Array(N).fill(0),tw=new Array(s.teams.length).fill(0);
+  var CT=chalTable(s),cres=(s.chal&&s.chal.res)||{},crem=chalOn(s)?chalFixtures(s).filter(function(f){return cres[f.key]!==f.a&&cres[f.key]!==f.b;}).map(function(f){return [s.teams.indexOf(teamOf(s,f.a)),s.teams.indexOf(teamOf(s,f.b))];}):[];
+  var IT=(rem.length||crem.length)?3000:1,SD=195,win=new Array(N).fill(0),last=new Array(N).fill(0),tw=new Array(s.teams.length).fill(0);
   var idx=P.map(function(_,i){return i;});
   var tAvg=s.teams.map(function(t,ti){var a=0,n=0;P.forEach(function(_,i){if(tm[i]===ti){a+=R[i];n++;}});return n?a/n:ELO_START;});
   for(var it=0;it<IT;it++){
@@ -742,7 +805,8 @@ function liveForm(s){
     var hi=-1e9,lo=1e9;tot.forEach(function(v){if(v>hi)hi=v;if(v<lo)lo=v;});
     var W=idx.filter(function(i){return tot[i]===hi;}),L=idx.filter(function(i){return tot[i]===lo;});
     W.forEach(function(i){win[i]+=1/W.length;});L.forEach(function(i){last[i]+=1/L.length;});
-    var tt=s.teams.map(function(){return 0;});idx.forEach(function(i){if(tm[i]>=0)tt[tm[i]]+=tot[i];});
+    var tt=s.teams.map(function(t){return CT[t.id].pts;});idx.forEach(function(i){if(tm[i]>=0)tt[tm[i]]+=tot[i];});
+    crem.forEach(function(m){var pa=1/(1+Math.pow(10,(tAvg[m[1]]-tAvg[m[0]])/400));tt[rnd()<pa?m[0]:m[1]]+=CH_WIN;});
     var th=Math.max.apply(null,tt),TW=[];tt.forEach(function(v,ti){if(v===th)TW.push(ti);});TW.forEach(function(ti){tw[ti]+=1/TW.length;});
   }
   P.forEach(function(p,i){out.pc[p.id]=win[i]/IT;out.ps[p.id]=last[i]/IT;});
@@ -1055,10 +1119,11 @@ function renderStandings(s,c,ts,live){
     var members=s.players.filter(function(p){return p.team===t.id;}).map(function(p){return esc(p.name.split(' ')[0]);}).join(', ');
     var gap=pts===lead?(lead>0?(live?'Leading':'Winners'):''):fmt(lead-pts)+' behind';
     h+='<div class="team'+(x.rank===1&&lead>0?' lead':'')+'" style="--tc:'+esc(t.color)+'"><div class="rk num">'+rankLabel(x.rank,tr)+(mv?mvHtml(mv.T[t.id],x.rank):'')+'</div>'
-      +'<div style="min-width:0"><div class="team-name">'+esc(t.name)+(live&&x.rank===1&&lead>0?TROPHY:'')+fbTag(fb.team[t.id],fb.tc?fb.tc[t.id]:null)+'</div><div class="team-members">'+(members||'No players')+'</div><div class="bar"><i'+(live?' data-barfor="t:'+esc(t.id)+'"':'')+' style="width:'+(pts/maxPts*100).toFixed(1)+'%"></i></div></div>'
+      +'<div style="min-width:0"><div class="team-name">'+esc(t.name)+(live&&x.rank===1&&lead>0?TROPHY:'')+fbTag(fb.team[t.id],fb.tc?fb.tc[t.id]:null)+'</div><div class="team-members">'+(members||'No players')+(c.T[t.id].chal?' <span class="chal-inc">\u00b7 '+c.T[t.id].chal+' from side challenges</span>':'')+'</div><div class="bar"><i'+(live?' data-barfor="t:'+esc(t.id)+'"':'')+' style="width:'+(pts/maxPts*100).toFixed(1)+'%"></i></div></div>'
       +'<div class="pts"><b class="num"'+(live?' data-anim="t:'+esc(t.id)+'" data-val="'+pts+'" data-bar="1"':'')+'>'+fmt(pts)+'</b><small>'+gap+'</small></div></div>';
   });
   h+='</div>';
+  if(live)h+=chalHome(s);
   var dayOn=live&&s.events.some(hasResults);
   if(live&&!dayOn)h+=powerCard(s);
   h+='</section>';
@@ -1076,8 +1141,8 @@ function renderStandings(s,c,ts,live){
   if(dayOn)h+=powerCard(s);
   h+=raceChart(s,c,ts);
   if(s.events.length){
-    h+='<section><h2>Team points by event</h2><div class="tbl-wrap"><table><thead><tr><th>Team</th>'+s.events.map(function(e){return '<th class="r">'+esc(e.name)+'</th>';}).join('')+'<th class="r">Total</th></tr></thead><tbody>';
-    ts.forEach(function(t){h+='<tr><td>'+teamChip(t,true)+'</td>'+s.events.map(function(e){var v=c.T[t.id].by[e.id];return '<td class="r num">'+(v==null?'<span class="dash">–</span>':fmt(v))+'</td>';}).join('')+'<td class="r bigpts num">'+fmt(c.T[t.id].pts)+'</td></tr>';});
+    h+='<section><h2>Team points by event</h2><div class="tbl-wrap"><table><thead><tr><th>Team</th>'+s.events.map(function(e){return '<th class="r">'+esc(e.name)+'</th>';}).join('')+(chalOn(s)?'<th class="r">Side challenges</th>':'')+'<th class="r">Total</th></tr></thead><tbody>';
+    ts.forEach(function(t){h+='<tr><td>'+teamChip(t,true)+'</td>'+s.events.map(function(e){var v=c.T[t.id].by[e.id];return '<td class="r num">'+(v==null?'<span class="dash">–</span>':fmt(v))+'</td>';}).join('')+(chalOn(s)?'<td class="r num">'+(chalDone(s)?fmt(c.T[t.id].chal||0):'<span class="dash">–</span>')+'</td>':'')+'<td class="r bigpts num">'+fmt(c.T[t.id].pts)+'</td></tr>';});
     h+='</tbody></table></div></section>';
   }
   return h;
@@ -1240,7 +1305,7 @@ function renderArchive(s){
   var champHolder=closed.length?names(closed[0].champs.map(function(p){return p.name;})):esc(L.champion&&L.champion.holder||'');
   var cbz={},cb={v:L.cup?L.cup.best:null,by:esc(L.cup&&L.cup.bestBy||''),yr:'',nw:false},hb={v:L.champion?L.champion.best:null,by:esc(L.champion&&L.champion.bestBy||''),yr:'',nw:false};
   ys.slice().reverse().forEach(function(y){
-    y.teams.forEach(function(t){var z=teamSizeOf(y.st,t),v=y.c.T[t.id].pts,cur=cbz[z];if(v>0&&(!cur||v>cur.v)){cbz[z]={v:v,by:esc(t.name)+' ('+names(membersOf(y,t))+')',yr:y.a.year,nw:y.live};}});
+    y.teams.forEach(function(t){var z=teamSizeOf(y.st,t),v=evPts(y.c,t.id),cur=cbz[z];if(v>0&&(!cur||v>cur.v)){cbz[z]={v:v,by:esc(t.name)+' ('+names(membersOf(y,t))+')',yr:y.a.year,nw:y.live};}});
     y.st.players.forEach(function(p){var v=y.c.P[p.id].pts;if(v>0&&(hb.v==null||v>hb.v)){hb={v:v,by:esc(p.name),yr:y.a.year,nw:y.live};}else if(v>0&&v===hb.v&&hb.yr===y.a.year){hb.by+=' &amp; '+esc(p.name);}});
   });
   var curSize=0;s.teams.forEach(function(t){var z=teamSizeOf(s,t);if(z>curSize)curSize=z;});
@@ -1417,6 +1482,7 @@ APP.addEventListener('click',function(ev){
     case 'discard':draft=null;ui.confirm=null;break;
     case 'save':save();return;
     case 'dir':d=edit();evById(d,ui.ev).low=(v==='low');break;
+    case 'chal-res':d=edit();if(!d.chal)d.chal={games:{},res:{}};if(!d.chal.res)d.chal.res={};var cv=v.split('#');d.chal.res[cv[0]]=(d.chal.res[cv[0]]===cv[1])?null:cv[1];if(!d.chal.res[cv[0]])delete d.chal.res[cv[0]];break;
     case 'mres':d=edit();var pv=v.split(':'),mm=evById(d,ui.ev).matches[+pv[0]];mm.res=(mm.res===pv[1])?null:pv[1];break;
     case 'rebuild':ui.confirm='rebuild';break;
     case 'rebuild-yes':d=edit();var eh=evById(d,ui.ev);eh.matches=fixtures(d.teams.map(function(t){return t.id;}));ui.confirm=null;break;
@@ -1486,6 +1552,7 @@ APP.addEventListener('change',function(ev){
     if(val==='h2h'){if(!isH2H(ev2)){var nh=newH2H(d.teams);ev2.kind='h2h';ev2.mp=nh.mp;ev2.matches=nh.matches;ev2.scores={};}}
     else{if(isH2H(ev2)){delete ev2.kind;delete ev2.matches;delete ev2.mp;ev2.scores={};}ev2.low=(val==='low');}}
   else if(k==='year'){var y=val.trim();if(y)d.year=y;}
+  else if(k==='chal-game'){if(!d.chal)d.chal={games:{},res:{}};if(!d.chal.games)d.chal.games={};var gn=val.trim();if(gn)d.chal.games[v]=gn;else delete d.chal.games[v];}
   else if(k==='referee'){d.referee=val.trim();}
   else if(k==='date'){var dv=val.trim();if(!dv)delete d.date;else if(/^\d{4}-\d{2}-\d{2}$/.test(dv))d.date=dv;}
   render();
