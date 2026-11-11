@@ -44,6 +44,7 @@ button.cg-side.won{border-color:var(--good);background:rgba(46,125,80,.10)}
 .cg-tbc{grid-column:1/-1;font-size:11px;color:var(--muted);text-align:center;margin-top:-2px;letter-spacing:.06em;text-transform:uppercase}
 .ns-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .ns-card p{margin:0 0 8px}.ns-win b{font-family:var(--f-display);font-weight:800;font-size:20px}
+.sh-mates{white-space:normal;line-height:1.3;align-items:flex-start}.sh-mates .dot{margin-top:4px;flex:none}
 </style>
 <style id="app-style">
 /* Layout: stadium scoreboard — condensed display numerals, team-colour stripes, standings first, events second, archive as a roll of honour */
@@ -936,7 +937,8 @@ function profileData(s,name){
     var N=y.st.players.length,lastPts=ps.length?y.c.P[ps[ps.length-1].id].pts:null;
     var cup=!y.live&&y.teamWin.some(function(w){return w.id===me.team;}),champ=!y.live&&y.champs.some(function(p){return p.id===me.id;});
     var spoon=!y.live&&q.played>0&&q.pts===lastPts;
-    years.push({year:y.a.year,live:y.live,team:teamOf(y.st,me.team),rank:rank,lab:rankLabel(rank,rr),N:N,pts:q.pts,cup:cup,champ:champ,spoon:spoon});
+    var mates=y.st.players.filter(function(p){return p.team===me.team&&p.id!==me.id;}).map(function(p){return p.name;});
+    years.push({year:y.a.year,live:y.live,team:teamOf(y.st,me.team),mates:mates,rank:rank,lab:rankLabel(rank,rr),N:N,pts:q.pts,cup:cup,champ:champ,spoon:spoon});
     tot.played+=q.played;tot.pts+=q.pts;tot.won+=q.won;tot.lost+=q.lost;if(cup)tot.cups++;if(champ)tot.champs++;if(spoon)tot.spoons++;
     if(N>1)y.st.events.forEach(function(ev){if(ev.kind==='pts'||isH2H(ev))return;var x=y.c.R[ev.id][me.id];if(!x)return;var k=ekey(ev.name);(perf[k]=perf[k]||{name:ev.name,v:[]}).v.push((x.pts-1)/(N-1));});
   });
@@ -996,7 +998,7 @@ function profileSheet(s){
     h+='<div class="sh-sec"><span class="lbl">Year by year</span><table class="sh-yrs"><tbody>';
     P.years.slice().reverse().forEach(function(y){
       var badge=(y.champ?'<span class="sh-b gold">Champion</span>':'')+(y.cup?'<span class="sh-b gold">'+CUPIC+'Cup</span>':'')+(y.spoon?'<span class="sh-b">Spoon</span>':'')+(y.live?'<span class="live-tag">In progress</span>':'');
-      h+='<tr><td class="sh-y num">'+esc(y.year)+'</td><td>'+(y.team?teamChip(y.team):'')+'<div class="sh-bs">'+badge+'</div></td><td class="r"><b class="num">'+(y.lab.charAt(0)==='='?'=':'')+ordinal(y.rank)+'</b><small class="dash"> of '+y.N+'</small></td><td class="r bigpts num">'+fmt(y.pts)+'</td></tr>';});
+      h+='<tr><td class="sh-y num">'+esc(y.year)+'</td><td>'+(y.team?'<span class="chip sh-mates" style="--tc:'+esc(y.team.color)+'"><span class="dot"></span>'+(y.mates.length?'with '+names(y.mates):esc(y.team.name))+'</span>':'')+'<div class="sh-bs">'+badge+'</div></td><td class="r"><b class="num">'+(y.lab.charAt(0)==='='?'=':'')+ordinal(y.rank)+'</b><small class="dash"> of '+y.N+'</small></td><td class="r bigpts num">'+fmt(y.pts)+'</td></tr>';});
     h+='</tbody></table></div>';
   }
   /* Best / worst */
