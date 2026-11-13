@@ -45,6 +45,9 @@ button.cg-side.won{border-color:var(--good);background:rgba(46,125,80,.10)}
 .ns-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .ns-card p{margin:0 0 8px}.ns-win b{font-family:var(--f-display);font-weight:800;font-size:20px}
 .sh-mates{white-space:normal;line-height:1.3;align-items:flex-start}.sh-mates .dot{margin-top:4px;flex:none}
+.tp-edit{display:flex;flex-direction:column;gap:8px;margin:6px 0 12px}
+.tp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px}
+.tp-pos button{min-width:46px}
 </style>
 <style id="app-style">
 /* Layout: stadium scoreboard — condensed display numerals, team-colour stripes, standings first, events second, archive as a roll of honour */
@@ -447,10 +450,17 @@ function edit(){if(!draft)draft=clone(state);return draft;}
 function teamOf(s,id){for(var i=0;i<s.teams.length;i++)if(s.teams[i].id===id)return s.teams[i];return null;}
 function evById(s,id){return s.events.filter(function(e){return e.id===id;})[0];}
 function isH2H(ev){return ev.kind==='h2h';}
+/* Team positions (kind 'tpos'): the scorekeeper enters each team's finishing position; every player on a team
+   takes that team's block of places (like head to head). A team result, so it is left out of individual stats. */
+function isTP(ev){return ev.kind==='tpos';}
+function isTeamEv(ev){return ev.kind==='pts'||ev.kind==='h2h'||isTP(ev);}
+function tpTeams(s){return s.teams.filter(function(t){return s.players.some(function(p){return p.team===t.id;});});}
+function tpRows(ev,s){var pos=ev.tpos||{},rows=tpTeams(s).filter(function(t){return isNum(pos[t.id]);}).map(function(t){return {id:t.id,key:+pos[t.id]};});
+  rows.sort(function(a,b){return a.key-b.key;});rows.forEach(function(x){x.rank=1+rows.filter(function(y){return y.key<x.key;}).length;});return rows;}
 /* Not-scored events (kind 'ns'): played for fun, marked completed, never award points anywhere. */
 function isNS(ev){return ev.kind==='ns';}
 function evDone(ev){return isNS(ev)?!!ev.done:hasResults(ev);}
-function hasResults(ev){if(ev.kind==='ns')return false;if(ev.kind==='pts'){var pp=ev.points||{};for(var k0 in pp)if(isNum(pp[k0]))return true;return false;}if(isH2H(ev)){var m=ev.matches||[];return m.length>0&&m.every(function(x){return !!x.res;});}var r=ev.scores||{};for(var k in r)if(isNum(r[k]))return true;return false;}
+function hasResults(ev){if(ev.kind==='ns')return false;if(ev.kind==='tpos'){var tp=ev.tpos||{},n0=0;for(var k1 in tp)if(isNum(tp[k1]))n0++;return n0>=2;}if(ev.kind==='pts'){var pp=ev.points||{};for(var k0 in pp)if(isNum(pp[k0]))return true;return false;}if(isH2H(ev)){var m=ev.matches||[];return m.length>0&&m.every(function(x){return !!x.res;});}var r=ev.scores||{};for(var k in r)if(isNum(r[k]))return true;return false;}
 function inProgress(ev){return isH2H(ev)&&!hasResults(ev)&&(ev.matches||[]).some(function(x){return !!x.res;});}
 /* Round robin (circle method): everyone plays everyone once */
 function fixtures(ids){
@@ -486,9 +496,9 @@ function evalEvent(ev,s){
     if(lst.length>1){var lv=lst[lst.length-1].v;lst.forEach(function(x){if(x.v===lv)oo[x.id].last=true;});}
     return oo;
   }
-  if(isH2H(ev)){
+  if(isH2H(ev)||isTP(ev)){
     if(!hasResults(ev))return {};
-    var rows=h2hTable(ev,s.teams).rows,N0=players.length,slot=0,o={},i0=0;
+    var rows=isTP(ev)?tpRows(ev,s):h2hTable(ev,s.teams).rows,N0=players.length,slot=0,o={},i0=0;
     while(i0<rows.length){
       var j0=i0;while(j0+1<rows.length&&rows[j0+1].key===rows[i0].key)j0++;
       var ids=[];for(var q=i0;q<=j0;q++)players.forEach(function(p){if(p.team===rows[q].id)ids.push(p.id);});
@@ -576,6 +586,7 @@ function toArchive(s){
     teams:s.teams.map(function(t){return {name:t.name,color:t.color,members:s.players.filter(function(p){return p.team===t.id;}).map(function(p){return p.name;})};}),
     events:s.events.filter(hasResults).map(function(e){
       if(e.kind==='pts'){var pn={};Object.keys(e.points||{}).forEach(function(id){if(nameOf[id])pn[nameOf[id]]=e.points[id];});return {name:e.name,kind:'pts',points:pn};}
+      if(isTP(e)){var tn2={};s.teams.forEach(function(t){tn2[t.id]=t.name;});var po={};Object.keys(e.tpos||{}).forEach(function(id){if(tn2[id]&&isNum(e.tpos[id]))po[tn2[id]]=+e.tpos[id];});return {name:e.name,kind:'tpos',pos:po};}
       if(isH2H(e)){var tn={};s.teams.forEach(function(t){tn[t.id]=t.name;});return {name:e.name,kind:'h2h',mp:e.mp,matches:(e.matches||[]).map(function(m){return {a:tn[m.a],b:tn[m.b],round:m.round,sa:m.sa,sb:m.sb,res:m.res};})};}
       var r={};Object.keys(e.scores).forEach(function(id){if(isNum(e.scores[id])&&nameOf[id])r[nameOf[id]]=+e.scores[id];});return {name:e.name,low:!!e.low,scores:r};}),
     chal:(function(){if(!s.chal||!chalDone(s))return undefined;var tn={};s.teams.forEach(function(t){tn[t.id]=t.name;});var g={},r={};
@@ -592,6 +603,7 @@ function archiveToState(a){
     if(e.kind==='pts'){var pr={};
       Object.keys(e.points||{}).forEach(function(n){var k=nkey(n);if(!idOf[k]){var pid='p'+st.players.length;idOf[k]=pid;st.players.push({id:pid,name:n,team:null});}pr[idOf[k]]=e.points[n];});
       st.events.push({id:'e'+i,name:e.name,kind:'pts',points:pr,scores:{}});return;}
+    if(e.kind==='tpos'){var tj={};st.teams.forEach(function(t){tj[nkey(t.name)]=t.id;});var tp2={};Object.keys(e.pos||{}).forEach(function(n){if(tj[nkey(n)])tp2[tj[nkey(n)]]=e.pos[n];});st.events.push({id:'e'+i,name:e.name,kind:'tpos',tpos:tp2,scores:{}});return;}
     if(e.kind==='h2h'){var ti={};st.teams.forEach(function(t){ti[nkey(t.name)]=t.id;});
       st.events.push({id:'e'+i,name:e.name,kind:'h2h',mp:e.mp,scores:{},matches:(e.matches||[]).map(function(m){return {a:ti[nkey(m.a)],b:ti[nkey(m.b)],round:m.round,sa:m.sa,sb:m.sb,res:m.res};})});return;}
     var r={};
@@ -745,7 +757,7 @@ function formBook(s){
   var inField={};s.players.forEach(function(p){inField[nkey(p.name)]=p.name;});
   var perf={};
   s0.archive.forEach(function(a){var st=archiveToState(a),c=compute(st),N=st.players.length;if(N<2)return;
-    st.events.forEach(function(ev){if(ev.kind==='pts'||isH2H(ev)||!hasResults(ev))return;var k=ekey(ev.name);perf[k]=perf[k]||{};
+    st.events.forEach(function(ev){if(isTeamEv(ev)||!hasResults(ev))return;var k=ekey(ev.name);perf[k]=perf[k]||{};
       st.players.forEach(function(p){var x=c.R[ev.id][p.id];if(!x)return;var nk=nkey(p.name);(perf[k][nk]=perf[k][nk]||[]).push((x.pts-1)/(N-1));});});});
   s.events.forEach(function(ev){var P=perf[ekey(ev.name)];if(!P)return;
     var held=0;Object.keys(P).forEach(function(n){if(P[n].length>held)held=P[n].length;});var need=Math.min(2,held),best=null;
@@ -799,7 +811,7 @@ function liveForm(s){
   for(var it=0;it<IT;it++){
     var tot=base.slice();
     rem.forEach(function(ev){
-      if(isH2H(ev)){
+      if(isH2H(ev)||isTP(ev)){
         var tp=tAvg.map(function(v,ti){return {ti:ti,v:v+gauss()*SD};}).sort(function(a,b){return b.v-a.v;}),slot=0;
         tp.forEach(function(x){var ids=idx.filter(function(i){return tm[i]===x.ti;}),sum=0;for(var z=0;z<ids.length;z++)sum+=Math.max(N-slot-z,0);ids.forEach(function(i){tot[i]+=sum/ids.length;});slot+=ids.length;});
       } else {
@@ -858,9 +870,9 @@ function dayCards(s,c,ts){
   var lastEv=done.length?done[done.length-1]:null,nextEv=s.events.filter(function(e){return !evDone(e);})[0]||null;
   function pos(ev){return s.events.indexOf(ev)+1;}
   if(lastEv){
-    var s0=clone(s),e0=evById(s0,lastEv.id);e0.scores={};if(e0.matches)e0.matches.forEach(function(m){m.res=null;m.sa='';m.sb='';});
+    var s0=clone(s),e0=evById(s0,lastEv.id);e0.scores={};if(e0.tpos)e0.tpos={};if(e0.matches)e0.matches.forEach(function(m){m.res=null;m.sa='';m.sb='';});
     var before=snapStandings(s0),r=c.R[lastEv.id],head,twist='',facts=[];
-    if(isH2H(lastEv)){var rows=h2hTable(lastEv,s.teams).rows,wt=rows.filter(function(x){return x.rank===1;}).map(function(x){return (teamOf(s,x.id)||NOTEAM).name;});
+    if(isH2H(lastEv)||isTP(lastEv)){var rows=isTP(lastEv)?tpRows(lastEv,s):h2hTable(lastEv,s.teams).rows,wt=rows.filter(function(x){return x.rank===1;}).map(function(x){return (teamOf(s,x.id)||NOTEAM).name;});
       head=esc(lastEv.name)+': '+names(wt)+(wt.length>1?' share it':' win it');}
     else{var win=s.players.filter(function(p){return r[p.id]&&r[p.id].place===1;});
       head=esc(lastEv.name)+': '+names(win.map(function(p){return p.name;}))+(win.length>1?' share it':' wins')+(win.length&&isNum(r[win[0].id].score)?' with '+fmt(r[win[0].id].score):'');
@@ -940,7 +952,7 @@ function profileData(s,name){
     var mates=y.st.players.filter(function(p){return p.team===me.team&&p.id!==me.id;}).map(function(p){return p.name;});
     years.push({year:y.a.year,live:y.live,team:teamOf(y.st,me.team),mates:mates,rank:rank,lab:rankLabel(rank,rr),N:N,pts:q.pts,cup:cup,champ:champ,spoon:spoon});
     tot.played+=q.played;tot.pts+=q.pts;tot.won+=q.won;tot.lost+=q.lost;if(cup)tot.cups++;if(champ)tot.champs++;if(spoon)tot.spoons++;
-    if(N>1)y.st.events.forEach(function(ev){if(ev.kind==='pts'||isH2H(ev))return;var x=y.c.R[ev.id][me.id];if(!x)return;var k=ekey(ev.name);(perf[k]=perf[k]||{name:ev.name,v:[]}).v.push((x.pts-1)/(N-1));});
+    if(N>1)y.st.events.forEach(function(ev){if(isTeamEv(ev))return;var x=y.c.R[ev.id][me.id];if(!x)return;var k=ekey(ev.name);(perf[k]=perf[k]||{name:ev.name,v:[]}).v.push((x.pts-1)/(N-1));});
   });
   var ev=Object.keys(perf).map(function(k){var p=perf[k];return {name:p.name,n:p.v.length,avg:p.v.reduce(function(a,b){return a+b;},0)/p.v.length};});
   var need=ev.some(function(e){return e.n>=2;})?2:1,el=ev.filter(function(e){return e.n>=need;}).sort(function(a,b){return b.avg-a.avg;});
@@ -1017,9 +1029,9 @@ function eloRun(s,dropLast){
   var seq=[],cy=String(s.year),hasCur=(s.archive||[]).some(function(a){return String(a.year)===cy;});
   (s.archive||[]).slice().sort(function(a,b){return (parseInt(a.year,10)||0)-(parseInt(b.year,10)||0);}).forEach(function(a){
     var st=archiveToState(a),c=compute(st);
-    st.events.forEach(function(ev){if(!hasResults(ev)||ev.kind==='pts'||isH2H(ev))return;var en=[];st.players.forEach(function(p){var x=c.R[ev.id][p.id];if(x)en.push({n:p.name,v:x.pts});});seq.push({year:String(a.year),ev:ev.name,en:en});});
+    st.events.forEach(function(ev){if(!hasResults(ev)||isTeamEv(ev))return;var en=[];st.players.forEach(function(p){var x=c.R[ev.id][p.id];if(x)en.push({n:p.name,v:x.pts});});seq.push({year:String(a.year),ev:ev.name,en:en});});
   });
-  if(!hasCur){var c2=compute(s);s.events.forEach(function(ev){if(!hasResults(ev)||ev.kind==='pts'||isH2H(ev))return;var en=[];s.players.forEach(function(p){var x=c2.R[ev.id][p.id];if(x)en.push({n:p.name,v:x.pts});});seq.push({year:cy,ev:ev.name,en:en});});}
+  if(!hasCur){var c2=compute(s);s.events.forEach(function(ev){if(!hasResults(ev)||isTeamEv(ev))return;var en=[];s.players.forEach(function(p){var x=c2.R[ev.id][p.id];if(x)en.push({n:p.name,v:x.pts});});seq.push({year:cy,ev:ev.name,en:en});});}
   if(dropLast)seq=seq.slice(0,-1);
   var R={},H={},N={},disp={};
   seq.forEach(function(e,k){
@@ -1180,6 +1192,10 @@ function raceChart(s,c,ts){
   return '<section><h2>Race to the Cup</h2><p class="sec-note">Each team’s running total after every event.</p><div class="tbl-wrap rc-wrap">'+g+'</div></section>';
 }
 function podiumHtml(s,r,ev){
+  if(ev&&isTP(ev)){
+    if(!hasResults(ev))return '<div class="empty">No results yet</div>';
+    return '<div class="podium">'+tpRows(ev,s).filter(function(x){return x.rank<=3;}).map(function(x){var t=teamOf(s,x.id)||NOTEAM;return '<div><span class="medal '+(x.rank===1?'g':x.rank===2?'s':'b')+'">'+x.rank+'</span><span class="dot" style="--tc:'+esc(t.color)+'"></span>'+esc(t.name)+'</div>';}).join('')+'</div>';
+  }
   if(ev&&isH2H(ev)){
     var ms=ev.matches||[],pl=ms.filter(function(m){return m.res;}).length;
     if(!hasResults(ev))return '<div class="empty">'+(pl?pl+' of '+ms.length+' matches played':'No results yet')+'</div>';
@@ -1190,10 +1206,10 @@ function podiumHtml(s,r,ev){
   ents.sort(function(a,b){return a.pl-b.pl||a.name.localeCompare(b.name);});
   return ents.length?'<div class="podium">'+ents.map(function(e){return '<div><span class="medal '+(e.pl===1?'g':e.pl===2?'s':'b')+'">'+e.pl+'</span><span class="dot" style="--tc:'+esc(e.color)+'"></span>'+esc(e.name)+' <span class="dash num">'+fmt(e.score)+'</span></div>';}).join('')+'</div>':'<div class="empty">No results yet</div>';
 }
-function fmtLabel(ev){return isNS(ev)?'Not scored \u00b7 no points':ev.kind==='pts'?'Team event':isH2H(ev)?'Head to head \u00b7 teams':ev.low?'Lowest score wins':'Highest score wins';}
+function fmtLabel(ev){return isNS(ev)?'Not scored \u00b7 no points':isTP(ev)?'Team positions \u00b7 team result':ev.kind==='pts'?'Team event':isH2H(ev)?'Head to head \u00b7 teams':ev.low?'Lowest score wins':'Highest score wins';}
 function addEventForm(where){
   return '<form class="row add-ev" data-form="add-event"><input type="text" id="new-ev-'+where+'" class="grow" placeholder="New event name, e.g. Pool" autocomplete="off" aria-label="New event name">'
-    +'<select class="place" id="new-ev-dir-'+where+'" aria-label="How the event is won"><option value="high">Highest score wins</option><option value="low">Lowest score wins</option><option value="h2h">Head to head (teams)</option><option value="ns">Not scored (for fun)</option></select>'
+    +'<select class="place" id="new-ev-dir-'+where+'" aria-label="How the event is won"><option value="high">Highest score wins</option><option value="low">Lowest score wins</option><option value="h2h">Head to head (teams)</option><option value="tpos">Team positions (team result)</option><option value="ns">Not scored (for fun)</option></select>'
     +'<button class="btn small primary" type="submit">Add event</button></form>';
 }
 function renderEvents(s,c){
@@ -1269,6 +1285,7 @@ function renderEvent(s,c){
   var ev=evById(s,ui.ev),r=c.R[ev.id],sc=ev.scores||{};
   if(isH2H(ev))return renderH2H(s,c,ev);
   if(isNS(ev))return renderNS(s,ev);
+  if(isTP(ev))return renderTP(s,c,ev);
   var h='<section><div class="detail-head"><button class="btn small ghost" data-act="back">← All events</button><h2>'+esc(ev.name)+'</h2>';
   if(ui.unlocked&&!s.final){
     h+='<span class="dir" role="group" aria-label="How the event is won"><button data-act="dir" data-v="high" aria-pressed="'+!ev.low+'">Highest wins</button><button data-act="dir" data-v="low" aria-pressed="'+!!ev.low+'">Lowest wins</button></span></div>';
@@ -1284,6 +1301,26 @@ function renderEvent(s,c){
   }
   h+='<span class="pill">'+(ev.low?'Lowest score wins':'Highest score wins')+'</span></div>';
   return h+resultsTable(s,r)+'</section>';
+}
+function renderTP(s,c,ev){
+  var ed=ui.unlocked&&!s.final,T=tpTeams(s),pos=ev.tpos||{},r=c.R[ev.id]||{},done=hasResults(ev);
+  var h='<section><div class="detail-head"><button class="btn small ghost" data-act="back">\u2190 All events</button><h2>'+esc(ev.name)+'</h2><span class="pill">Team positions</span></div>';
+  h+='<p class="sec-note">Scored on the team result. Each team\u2019s players share its block of places, so the winning team\u2019s players split 1st\u2013'+Math.max(1,s.players.filter(function(p){return T[0]&&p.team===T[0].id;}).length)+'. Counts for the Cup and the team, but not individual stats.'+(ed?' Tap each team\u2019s finishing position; tap again to clear. Two teams on the same number share.':'')+'</p>';
+  if(ed){
+    h+='<div class="tp-edit">';
+    T.forEach(function(t){h+='<div class="tp-row">'+teamChip(t,true)+'<div class="dir tp-pos" role="group" aria-label="'+esc(t.name)+' position">';
+      for(var n=1;n<=T.length;n++)h+='<button data-act="tp-pos" data-v="'+esc(ev.id+'|'+t.id+'|'+n)+'" aria-pressed="'+(+pos[t.id]===n)+'">'+ordinal(n)+'</button>';
+      h+='</div></div>';});
+    h+='</div>';
+  }
+  if(done){
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Place</th><th>Team</th><th class="r">Cup pts each</th><th class="r">Team total</th></tr></thead><tbody>';
+    tpRows(ev,s).forEach(function(x){var t=teamOf(s,x.id)||NOTEAM,ids=s.players.filter(function(p){return p.team===x.id;}),each=ids.length&&r[ids[0].id]?r[ids[0].id].pts:0,tot=0;ids.forEach(function(p){if(r[p.id])tot+=r[p.id].pts;});
+      h+='<tr><td class="rkc">'+(x.rank<=3?'<span class="medal '+(x.rank===1?'g':x.rank===2?'s':'b')+'">'+x.rank+'</span>':'<span class="num">'+x.rank+'</span>')+'</td><td>'+teamChip(t,true)+'</td><td class="r num">'+fmt(each)+'</td><td class="r bigpts num">'+fmt(tot)+'</td></tr>';});
+    h+='</tbody></table></div>';
+  } else if(!ed)h+='<p class="empty">No results yet. Check back once it\u2019s been played.</p>';
+  else h+='<p class="sec-note">Points appear once at least two teams have a position. Give every team one before publishing.</p>';
+  return h+'</section>';
 }
 function renderNS(s,ev){
   var ed=ui.unlocked&&!s.final;
@@ -1372,7 +1409,7 @@ var PCT_MIN=5;
 function careerPerf(ys,ind){
   var M={};
   ys.forEach(function(y){var N=y.st.players.length;if(N<2)return;
-    y.st.events.forEach(function(ev){if(!hasResults(ev)||(ind&&(ev.kind==='pts'||isH2H(ev))))return;var r=y.c.R[ev.id];
+    y.st.events.forEach(function(ev){if(!hasResults(ev)||(ind&&(isTeamEv(ev))))return;var r=y.c.R[ev.id];
       y.st.players.forEach(function(p){var x=r[p.id];if(!x)return;var k=nkey(p.name),m=M[k]=M[k]||{sum:0,n:0};m.sum+=(x.pts-1)/(N-1);m.n++;});});});
   var list=Object.keys(M).filter(function(k){return M[k].n>=PCT_MIN;}).sort(function(a,b){return M[b].sum/M[b].n-M[a].sum/M[a].n;});
   var rk=ranked(list,function(k){return Math.round(M[k].sum/M[k].n*1000);});
@@ -1388,7 +1425,7 @@ function renderAllTime(s,ys){
   s.players.forEach(function(p){get(p.name);});
   var ind=ui.pctMode!=='all';
   ys.forEach(function(y){
-    if(ind)y.st.events.forEach(function(ev){if(!hasResults(ev)||ev.kind==='pts'||isH2H(ev))return;var r=y.c.R[ev.id];
+    if(ind)y.st.events.forEach(function(ev){if(!hasResults(ev)||isTeamEv(ev))return;var r=y.c.R[ev.id];
       y.st.players.forEach(function(p){var x=r[p.id];if(!x)return;var m=get(p.name);m.name=p.name;m.played++;m.pts+=x.pts;if(x.place===1)m.won++;if(x.last)m.lost++;});});
     else y.st.players.forEach(function(p){var q=y.c.P[p.id],m=get(p.name);m.name=p.name;m.played+=q.played;m.won+=q.won;m.lost+=q.lost;m.pts+=q.pts;});
     if(y.live)return;
@@ -1446,7 +1483,7 @@ function renderSetup(s){
   if(!s.events.length)h+='<p class="hint">No events yet.</p>';
   s.events.forEach(function(e,i){
     h+='<div class="row"><span class="ev-no num" style="font-size:22px">'+(i+1)+'</span><input type="text" id="en-'+e.id+'" value="'+esc(e.name)+'" data-in="event-name" data-v="'+e.id+'" aria-label="Event name">'
-      +'<select class="place" id="ed-'+e.id+'" data-ch="event-dir" data-v="'+e.id+'" aria-label="How '+esc(e.name)+' is won"><option value="high"'+(!isH2H(e)&&!isNS(e)&&!e.low?' selected':'')+'>Highest wins</option><option value="low"'+(!isH2H(e)&&!isNS(e)&&e.low?' selected':'')+'>Lowest wins</option><option value="h2h"'+(isH2H(e)?' selected':'')+'>Head to head</option><option value="ns"'+(isNS(e)?' selected':'')+'>Not scored</option></select>'
+      +'<select class="place" id="ed-'+e.id+'" data-ch="event-dir" data-v="'+e.id+'" aria-label="How '+esc(e.name)+' is won"><option value="high"'+(!isH2H(e)&&!isNS(e)&&!isTP(e)&&!e.low?' selected':'')+'>Highest wins</option><option value="low"'+(!isH2H(e)&&!isNS(e)&&!isTP(e)&&e.low?' selected':'')+'>Lowest wins</option><option value="h2h"'+(isH2H(e)?' selected':'')+'>Head to head</option><option value="tpos"'+(isTP(e)?' selected':'')+'>Team positions</option><option value="ns"'+(isNS(e)?' selected':'')+'>Not scored</option></select>'
       +'<button class="btn small ghost" data-act="ev-up" data-v="'+e.id+'"'+(i===0?' disabled':'')+' aria-label="Move up">↑</button>'
       +'<button class="btn small ghost" data-act="ev-down" data-v="'+e.id+'"'+(i===s.events.length-1?' disabled':'')+' aria-label="Move down">↓</button>'
       +(ui.confirm==='e:'+e.id?'<button class="btn small danger" data-act="del-event-yes" data-v="'+e.id+'">Delete</button><button class="btn small ghost" data-act="confirm-no">Keep</button>':'<button class="btn small ghost" data-act="del-event" data-v="'+e.id+'" aria-label="Delete '+esc(e.name)+'">✕</button>')+'</div>';});
@@ -1502,6 +1539,7 @@ APP.addEventListener('click',function(ev){
     case 'save':save();return;
     case 'dir':d=edit();evById(d,ui.ev).low=(v==='low');break;
     case 'chal-res':d=edit();if(!d.chal)d.chal={games:{},res:{}};if(!d.chal.res)d.chal.res={};var cv=v.split('#');d.chal.res[cv[0]]=(d.chal.res[cv[0]]===cv[1])?null:cv[1];if(!d.chal.res[cv[0]])delete d.chal.res[cv[0]];break;
+    case 'tp-pos':d=edit();var tq=v.split('|'),tpe=evById(d,tq[0]);if(tpe){tpe.tpos=tpe.tpos||{};if(+tpe.tpos[tq[1]]===+tq[2])delete tpe.tpos[tq[1]];else tpe.tpos[tq[1]]=+tq[2];}break;
     case 'ns-done':d=edit();var nse=evById(d,v);nse.done=!nse.done;break;
     case 'mres':d=edit();var pv=v.split(':'),mm=evById(d,ui.ev).matches[+pv[0]];mm.res=(mm.res===pv[1])?null:pv[1];break;
     case 'rebuild':ui.confirm='rebuild';break;
@@ -1568,11 +1606,13 @@ APP.addEventListener('change',function(ev){
   var d=edit(),v=el.getAttribute('data-v'),val=el.value;
   if(k==='team-color')teamOf(d,v).color=val;
   else if(k==='player-team')d.players.forEach(function(p){if(p.id===v)p.team=val;});
-  else if(k==='event-dir'){var ev2=evById(d,v);
-    if(val==='ns'){delete ev2.matches;delete ev2.mp;delete ev2.low;ev2.kind='ns';ev2.scores={};}
-    else if(isNS(ev2)&&val!=='h2h'){delete ev2.kind;delete ev2.done;delete ev2.note;ev2.low=(val==='low');}
-    else if(val==='h2h'){if(isNS(ev2)){delete ev2.kind;delete ev2.done;delete ev2.note;}if(!isH2H(ev2)){var nh=newH2H(d.teams);ev2.kind='h2h';ev2.mp=nh.mp;ev2.matches=nh.matches;ev2.scores={};}}
-    else{if(isH2H(ev2)){delete ev2.kind;delete ev2.matches;delete ev2.mp;ev2.scores={};}ev2.low=(val==='low');}}
+  else if(k==='event-dir'){var ev2=evById(d,v),was=isH2H(ev2)?'h2h':isNS(ev2)?'ns':isTP(ev2)?'tpos':'sc';
+    var now=val==='h2h'||val==='ns'||val==='tpos'?val:'sc';
+    if(now!==was){['kind','matches','mp','done','note','tpos','low'].forEach(function(f){delete ev2[f];});ev2.scores={};
+      if(now==='h2h'){var nh=newH2H(d.teams);ev2.kind='h2h';ev2.mp=nh.mp;ev2.matches=nh.matches;}
+      else if(now==='ns')ev2.kind='ns';
+      else if(now==='tpos'){ev2.kind='tpos';ev2.tpos={};}}
+    if(now==='sc')ev2.low=(val==='low');}
   else if(k==='year'){var y=val.trim();if(y)d.year=y;}
   else if(k==='chal-game'){if(!d.chal)d.chal={games:{},res:{}};if(!d.chal.games)d.chal.games={};var gn=val.trim();if(gn)d.chal.games[v]=gn;else delete d.chal.games[v];}
   else if(k==='ns-note'){var ne2=evById(d,v);if(ne2){var nv=val.trim();if(nv)ne2.note=nv;else delete ne2.note;}}
@@ -1588,6 +1628,7 @@ APP.addEventListener('submit',function(ev){
     if(!nm){toast('Type the event name first.');return;}
     var dd=edit();
     if(dir&&dir.value==='h2h'){var ne=newH2H(dd.teams);ne.id=uid('e');ne.name=nm;dd.events.push(ne);}
+    else if(dir&&dir.value==='tpos')dd.events.push({id:uid('e'),name:nm,kind:'tpos',tpos:{},scores:{}});
     else if(dir&&dir.value==='ns')dd.events.push({id:uid('e'),name:nm,kind:'ns',scores:{}});
     else dd.events.push({id:uid('e'),name:nm,low:!!dir&&dir.value==='low',scores:{}});
     toast(nm+' added. Publish to share it.');return;
