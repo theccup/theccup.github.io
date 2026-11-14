@@ -455,6 +455,12 @@ function isH2H(ev){return ev.kind==='h2h';}
 function isTP(ev){return ev.kind==='tpos';}
 function isTeamEv(ev){return ev.kind==='pts'||ev.kind==='h2h'||isTP(ev);}
 function tpTeams(s){return s.teams.filter(function(t){return s.players.some(function(p){return p.team===t.id;});});}
+/* Team positions award TEAM points only (never to players): with 4 teams the totals are 16/12/8/4,
+   i.e. TP_MULT x (teams - position + 1). Ties share the average of the places they cover. */
+var TP_MULT=4;
+function tpTeamPts(ev,s){var tr=tpRows(ev,s),nT=tpTeams(s).length,o={},a=0;
+  while(a<tr.length){var b=a;while(b+1<tr.length&&tr[b+1].key===tr[a].key)b++;var sm=0;for(var q=a;q<=b;q++)sm+=Math.max(nT-q,0)*TP_MULT;for(var q2=a;q2<=b;q2++)o[tr[q2].id]=sm/(b-a+1);a=b+1;}
+  return o;}
 function tpRows(ev,s){var pos=ev.tpos||{},rows=tpTeams(s).filter(function(t){return isNum(pos[t.id]);}).map(function(t){return {id:t.id,key:+pos[t.id]};});
   rows.sort(function(a,b){return a.key-b.key;});rows.forEach(function(x){x.rank=1+rows.filter(function(y){return y.key<x.key;}).length;});return rows;}
 /* Not-scored events (kind 'ns'): played for fun, marked completed, never award points anywhere. */
@@ -496,9 +502,10 @@ function evalEvent(ev,s){
     if(lst.length>1){var lv=lst[lst.length-1].v;lst.forEach(function(x){if(x.v===lv)oo[x.id].last=true;});}
     return oo;
   }
-  if(isH2H(ev)||isTP(ev)){
+  if(isTP(ev))return {};
+  if(isH2H(ev)){
     if(!hasResults(ev))return {};
-    var rows=isTP(ev)?tpRows(ev,s):h2hTable(ev,s.teams).rows,N0=players.length,slot=0,o={},i0=0;
+    var rows=h2hTable(ev,s.teams).rows,N0=players.length,slot=0,o={},i0=0;
     while(i0<rows.length){
       var j0=i0;while(j0+1<rows.length&&rows[j0+1].key===rows[i0].key)j0++;
       var ids=[];for(var q=i0;q<=j0;q++)players.forEach(function(p){if(p.team===rows[q].id)ids.push(p.id);});
@@ -530,7 +537,7 @@ function evalEvent(ev,s){
    s.chal = {games:{teamId:name}, res:{'hostId|oppId':winnerId}}. */
 var CH_WIN=3;
 /* Team records use event points only: side-challenge points decide the Cup on the day but never count towards records. */
-function evPts(c,id){var x=c.T[id];return x.pts-(x.chal||0);}
+function evPts(c,id){var x=c.T[id];return x.pts-(x.chal||0)-(x.tp||0);}
 function chalOn(s){return s.chal?s.chal.on!==false:String(s.year)==='2026';}
 function chalFixtures(s){var F=[];s.teams.forEach(function(h){s.teams.forEach(function(o){if(o.id!==h.id)F.push({host:h.id,a:h.id,b:o.id,key:h.id+'|'+o.id});});});return F;}
 function chalTable(s){var T={};s.teams.forEach(function(t){T[t.id]={p:0,w:0,l:0,pts:0};});if(!s.chal)return T;
@@ -562,6 +569,7 @@ function compute(s){
   s.events.forEach(function(ev){
     var r=evalEvent(ev,s),any=hasResults(ev); R[ev.id]=r;
     s.teams.forEach(function(t){T[t.id].by[ev.id]=any?0:null;});
+    if(isTP(ev)&&any){var tpp=tpTeamPts(ev,s);s.teams.forEach(function(t){var v=tpp[t.id]||0;T[t.id].pts+=v;T[t.id].by[ev.id]=v;T[t.id].tp=(T[t.id].tp||0)+v;});}
     s.players.forEach(function(p){
       var x=r[p.id],q=P[p.id]; q.by[ev.id]=x?x.pts:null; if(!x)return;
       q.pts+=x.pts; q.played++;
@@ -810,8 +818,10 @@ function liveForm(s){
   var tAvg=s.teams.map(function(t,ti){var a=0,n=0;P.forEach(function(_,i){if(tm[i]===ti){a+=R[i];n++;}});return n?a/n:ELO_START;});
   for(var it=0;it<IT;it++){
     var tot=base.slice();
+    var tpx=s.teams.map(function(t){return c.T[t.id].tp||0;});
     rem.forEach(function(ev){
-      if(isH2H(ev)||isTP(ev)){
+      if(isTP(ev)){var nT=s.teams.length;tAvg.map(function(v,ti){return {ti:ti,v:v+gauss()*SD};}).sort(function(a,b){return b.v-a.v;}).forEach(function(x,k){tpx[x.ti]+=Math.max(nT-k,0)*TP_MULT;});return;}
+      if(isH2H(ev)){
         var tp=tAvg.map(function(v,ti){return {ti:ti,v:v+gauss()*SD};}).sort(function(a,b){return b.v-a.v;}),slot=0;
         tp.forEach(function(x){var ids=idx.filter(function(i){return tm[i]===x.ti;}),sum=0;for(var z=0;z<ids.length;z++)sum+=Math.max(N-slot-z,0);ids.forEach(function(i){tot[i]+=sum/ids.length;});slot+=ids.length;});
       } else {
@@ -823,7 +833,7 @@ function liveForm(s){
     var hi=-1e9,lo=1e9;tot.forEach(function(v){if(v>hi)hi=v;if(v<lo)lo=v;});
     var W=idx.filter(function(i){return tot[i]===hi;}),L=idx.filter(function(i){return tot[i]===lo;});
     W.forEach(function(i){win[i]+=1/W.length;});L.forEach(function(i){last[i]+=1/L.length;});
-    var tt=s.teams.map(function(t){return CT[t.id].pts;});idx.forEach(function(i){if(tm[i]>=0)tt[tm[i]]+=tot[i];});
+    var tt=s.teams.map(function(t,ti){return CT[t.id].pts+tpx[ti];});idx.forEach(function(i){if(tm[i]>=0)tt[tm[i]]+=tot[i];});
     crem.forEach(function(m){var pa=1/(1+Math.pow(10,(tAvg[m[1]]-tAvg[m[0]])/400));tt[rnd()<pa?m[0]:m[1]]+=CH_WIN;});
     var th=Math.max.apply(null,tt),TW=[];tt.forEach(function(v,ti){if(v===th)TW.push(ti);});TW.forEach(function(ti){tw[ti]+=1/TW.length;});
   }
@@ -1206,7 +1216,7 @@ function podiumHtml(s,r,ev){
   ents.sort(function(a,b){return a.pl-b.pl||a.name.localeCompare(b.name);});
   return ents.length?'<div class="podium">'+ents.map(function(e){return '<div><span class="medal '+(e.pl===1?'g':e.pl===2?'s':'b')+'">'+e.pl+'</span><span class="dot" style="--tc:'+esc(e.color)+'"></span>'+esc(e.name)+' <span class="dash num">'+fmt(e.score)+'</span></div>';}).join('')+'</div>':'<div class="empty">No results yet</div>';
 }
-function fmtLabel(ev){return isNS(ev)?'Not scored \u00b7 no points':isTP(ev)?'Team positions \u00b7 team result':ev.kind==='pts'?'Team event':isH2H(ev)?'Head to head \u00b7 teams':ev.low?'Lowest score wins':'Highest score wins';}
+function fmtLabel(ev){return isNS(ev)?'Not scored \u00b7 no points':isTP(ev)?'Team positions \u00b7 team points only':ev.kind==='pts'?'Team event':isH2H(ev)?'Head to head \u00b7 teams':ev.low?'Lowest score wins':'Highest score wins';}
 function addEventForm(where){
   return '<form class="row add-ev" data-form="add-event"><input type="text" id="new-ev-'+where+'" class="grow" placeholder="New event name, e.g. Pool" autocomplete="off" aria-label="New event name">'
     +'<select class="place" id="new-ev-dir-'+where+'" aria-label="How the event is won"><option value="high">Highest score wins</option><option value="low">Lowest score wins</option><option value="h2h">Head to head (teams)</option><option value="tpos">Team positions (team result)</option><option value="ns">Not scored (for fun)</option></select>'
@@ -1305,7 +1315,7 @@ function renderEvent(s,c){
 function renderTP(s,c,ev){
   var ed=ui.unlocked&&!s.final,T=tpTeams(s),pos=ev.tpos||{},r=c.R[ev.id]||{},done=hasResults(ev);
   var h='<section><div class="detail-head"><button class="btn small ghost" data-act="back">\u2190 All events</button><h2>'+esc(ev.name)+'</h2><span class="pill">Team positions</span></div>';
-  h+='<p class="sec-note">Scored on the team result. Each team\u2019s players share its block of places, so the winning team\u2019s players split 1st\u2013'+Math.max(1,s.players.filter(function(p){return T[0]&&p.team===T[0].id;}).length)+'. Counts for the Cup and the team, but not individual stats.'+(ed?' Tap each team\u2019s finishing position; tap again to clear. Two teams on the same number share.':'')+'</p>';
+  h+='<p class="sec-note">Scored on the overall team result. Team points only: '+T.map(function(_,i){return (T.length-i)*TP_MULT;}).join(' / ')+' for 1st to '+ordinal(T.length)+'. Nothing goes to individual players or their stats.'+(ed?' Tap each team\u2019s finishing position; tap again to clear. Two teams on the same number share.':'')+'</p>';
   if(ed){
     h+='<div class="tp-edit">';
     T.forEach(function(t){h+='<div class="tp-row">'+teamChip(t,true)+'<div class="dir tp-pos" role="group" aria-label="'+esc(t.name)+' position">';
@@ -1314,9 +1324,10 @@ function renderTP(s,c,ev){
     h+='</div>';
   }
   if(done){
-    h+='<div class="tbl-wrap"><table><thead><tr><th>Place</th><th>Team</th><th class="r">Cup pts each</th><th class="r">Team total</th></tr></thead><tbody>';
-    tpRows(ev,s).forEach(function(x){var t=teamOf(s,x.id)||NOTEAM,ids=s.players.filter(function(p){return p.team===x.id;}),each=ids.length&&r[ids[0].id]?r[ids[0].id].pts:0,tot=0;ids.forEach(function(p){if(r[p.id])tot+=r[p.id].pts;});
-      h+='<tr><td class="rkc">'+(x.rank<=3?'<span class="medal '+(x.rank===1?'g':x.rank===2?'s':'b')+'">'+x.rank+'</span>':'<span class="num">'+x.rank+'</span>')+'</td><td>'+teamChip(t,true)+'</td><td class="r num">'+fmt(each)+'</td><td class="r bigpts num">'+fmt(tot)+'</td></tr>';});
+    var tpp=tpTeamPts(ev,s);
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Place</th><th>Team</th><th class="r">Team pts</th></tr></thead><tbody>';
+    tpRows(ev,s).forEach(function(x){var t=teamOf(s,x.id)||NOTEAM;
+      h+='<tr><td class="rkc">'+(x.rank<=3?'<span class="medal '+(x.rank===1?'g':x.rank===2?'s':'b')+'">'+x.rank+'</span>':'<span class="num">'+x.rank+'</span>')+'</td><td>'+teamChip(t,true)+'</td><td class="r bigpts num">'+fmt(tpp[x.id]||0)+'</td></tr>';});
     h+='</tbody></table></div>';
   } else if(!ed)h+='<p class="empty">No results yet. Check back once it\u2019s been played.</p>';
   else h+='<p class="sec-note">Points appear once at least two teams have a position. Give every team one before publishing.</p>';
