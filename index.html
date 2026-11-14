@@ -48,6 +48,7 @@ button.cg-side.won{border-color:var(--good);background:rgba(46,125,80,.10)}
 .tp-edit{display:flex;flex-direction:column;gap:8px;margin:6px 0 12px}
 .tp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px}
 .tp-pos button{min-width:46px}
+.winbanner{display:block;width:100%;max-width:480px;height:auto;margin:14px auto 0;border-radius:16px;box-shadow:0 6px 24px rgba(22,33,58,.25)}
 </style>
 <style id="app-style">
 /* Layout: stadium scoreboard — condensed display numerals, team-colour stripes, standings first, events second, archive as a roll of honour */
@@ -538,9 +539,10 @@ function evalEvent(ev,s){
 var CH_WIN=3;
 /* Team records use event points only: side-challenge points decide the Cup on the day but never count towards records. */
 function evPts(c,id){var x=c.T[id];return x.pts-(x.chal||0)-(x.tp||0);}
-function chalOn(s){return s.chal?s.chal.on!==false:String(s.year)==='2026';}
+/* Side challenges were dropped for 2026: off unless a year explicitly turns them on (s.chal.on===true). */
+function chalOn(s){return !!(s.chal&&s.chal.on===true);}
 function chalFixtures(s){var F=[];s.teams.forEach(function(h){s.teams.forEach(function(o){if(o.id!==h.id)F.push({host:h.id,a:h.id,b:o.id,key:h.id+'|'+o.id});});});return F;}
-function chalTable(s){var T={};s.teams.forEach(function(t){T[t.id]={p:0,w:0,l:0,pts:0};});if(!s.chal)return T;
+function chalTable(s){var T={};s.teams.forEach(function(t){T[t.id]={p:0,w:0,l:0,pts:0};});if(!chalOn(s))return T;
   chalFixtures(s).forEach(function(f){var w=(s.chal.res||{})[f.key];if(!w||(w!==f.a&&w!==f.b))return;var l=w===f.a?f.b:f.a;T[w].p++;T[w].w++;T[w].pts+=CH_WIN;T[l].p++;T[l].l++;});return T;}
 function chalDone(s){var r=(s.chal&&s.chal.res)||{};return chalFixtures(s).filter(function(f){return r[f.key]===f.a||r[f.key]===f.b;}).length;}
 function chalChip(t){return '<span class="chal-team" style="--tc:'+esc(t.color)+'">'+esc(t.name)+'</span>';}
@@ -671,7 +673,7 @@ function render(){
   if(ui.tab==='setup'&&!ui.unlocked)ui.tab='standings';
   h+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.tab===t[0])+'"><svg class="tab-ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+IC[t[0]]+'</svg>'+t[1]+'</button>';}).join('')+'</nav>';
 
-  if(ui.tab==='standings')h+=refBar(s)+(s.final?crownBanner(s,c,ts):countdown(s)+dayCards(s,c,ts))+renderStandings(s,c,ts,true);
+  if(ui.tab==='standings')h+=winBanner(s)+refBar(s)+(s.final?crownBanner(s,c,ts):countdown(s)+dayCards(s,c,ts))+renderStandings(s,c,ts,true);
   else if(ui.tab==='events')h+=ui.ev&&evById(s,ui.ev)?renderEvent(s,c):renderEvents(s,c)+chalFull(s);
   else if(ui.tab==='power')h+=renderPower(s);
   else if(ui.tab==='archive')h+=yearPills(s)+(ui.year?renderYear(s):renderArchive(s));
@@ -863,6 +865,8 @@ function snapStandings(s){
 function cupDate(s){var d=s.date||(String(s.year)==='2026'?'2026-11-14':'');return /^\d{4}-\d{2}-\d{2}$/.test(d)?d:null;}
 /* Cup referee: shown at the top of Home. Set in Setup; blank hides it. */
 function refName(s){return s.referee!=null?String(s.referee).trim():(String(s.year)==='2026'?'Andrew Wilkie':'');}
+/* 2026 winners banner (image), shown at the top of Home from Cup day */
+function winBanner(s){if(String(s.year)!=='2026'&&!(s.archive||[]).some(function(a){return String(a.year)==='2026';}))return '';if(new Date()<new Date(2026,10,14))return '';return '<img class="winbanner" src="winners-2026.jpg" width="1080" height="1350" alt="2026 winners: Champion C.U.N.T Joe Simpson. C.U.N.T Cup winners Team 2: James Booth, Joe Simpson, Stefan Rowell and John Bordiss.">';}
 function refBar(s){var r=refName(s);if(!r)return '';
   return '<div class="refbar"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="14" r="6"/><path d="M13.5 10 21 6v4l-6 2"/><path d="M9 14h.01"/></svg><span class="lbl">Cup referee</span><b>'+pLink(r)+'</b></div>';}
 function countdown(s){
