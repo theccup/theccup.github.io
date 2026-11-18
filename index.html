@@ -73,6 +73,10 @@ button.cg-side.won{border-color:var(--good);background:rgba(46,125,80,.10)}
 .d-rec{stroke:var(--gold);stroke-dasharray:3 3;stroke-width:1.2}.d-rect{font:700 10px var(--f-body,inherit);fill:var(--gold)}
 .d-ax{font:600 10.5px var(--f-body,inherit);fill:var(--muted)}
 .d-ctl{display:flex;align-items:center;gap:8px;margin:6px 0 2px}.d-ctl .lbl{margin:0}.d-ctl select{max-width:220px}
+.eh-link{margin-top:12px}
+.eh-pills{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+.eh-pills .pill-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font:inherit;font-weight:700;font-size:13.5px;color:var(--muted);cursor:pointer}
+.eh-pills .pill-btn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--accent-ink)}
 </style>
 <style id="app-style">
 /* Layout: stadium scoreboard — condensed display numerals, team-colour stripes, standings first, events second, archive as a roll of honour */
@@ -713,6 +717,7 @@ function render(){
   if(ui.toast)h+='<div class="toast" role="status">'+esc(ui.toast)+'</div>';
   var shOld=document.querySelector('.sheet'),sy=ui.prof&&shOld&&!ui.profFocus?shOld.scrollTop:0;
   APP.innerHTML=h;
+  if(ui.scrollTo){var se=document.getElementById(ui.scrollTo);ui.scrollTo=null;if(se)setTimeout(function(){se.scrollIntoView({block:'start'});},0);}
   try{document.body.classList.toggle('sheet-open',!!ui.prof);}catch(e){}
   if(ui.prof){var shx=document.querySelector('.sheet');if(shx){shx.scrollTop=sy;ui.profFocus=false;}}
   if(ui.tab==='standings')animatePoints();
@@ -1338,7 +1343,7 @@ function renderEvent(s,c){
     return h+'</tbody></table></div></section>';
   }
   h+='<span class="pill">'+(ev.low?'Lowest score wins':'Highest score wins')+'</span></div>';
-  return h+resultsTable(s,r,ev)+histPanel(s,ev)+'</section>';
+  return h+resultsTable(s,r,ev)+(!isTeamEv(ev)&&!isNS(ev)&&evHistory(s,ev).length>=5?'<button class="btn small ghost eh-link" data-act="ev-hist" data-v="'+esc(ekey(ev.name))+'">'+esc(ev.name)+' history \u2192</button>':'')+'</section>';
 }
 function renderTP(s,c,ev){
   var ed=ui.unlocked&&!s.final,T=tpTeams(s),pos=ev.tpos||{},r=c.R[ev.id]||{},done=hasResults(ev);
@@ -1425,6 +1430,17 @@ function histDist(s,ev,all){
   var sel='<label class="lbl" for="hist-hl">Highlight</label><select id="hist-hl" data-ui="histHl"><option value="">Nobody</option>'+Object.keys(names).sort().map(function(n){return '<option'+(n===hl?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select>';
   return '<div class="hist-panel"><div class="sec-head"><h3>Every score since '+esc(Y[Y.length-1])+'</h3></div><div class="d-ctl">'+sel+'</div>'+g
     +'<p class="sec-note">One dot per score; the small bar is each year’s middle score.'+(hl?' '+esc(hl.split(' ')[0])+'’s scores in gold.':' Pick a player to highlight their scores.')+'</p></div>';}
+/* Records: Event history - pick an event to see its score guide, every score by year and the all-time top 10. */
+function histEvents(s){var M={},order=[];
+  allYears(s).slice().reverse().forEach(function(y){y.st.events.forEach(function(e){if(isTeamEv(e)||isNS(e))return;var k=ekey(e.name);
+    var n=y.st.players.filter(function(p){return e.scores&&isNum(e.scores[p.id]);}).length;if(!n)return;
+    if(!M[k]){M[k]={key:k,name:e.name,low:!!e.low,n:0};order.push(k);}M[k].n+=n;});});
+  return order.map(function(k){return M[k];}).sort(function(a,b){return b.n-a.n||a.name.localeCompare(b.name);});}
+function renderEventHistory(s){
+  var L=histEvents(s);if(!L.length)return '';var cur=L.filter(function(e){return e.key===ui.histEv;})[0]||L[0],ev={name:cur.name,low:cur.low,scores:{}};
+  var h='<section id="event-history"><h2>Event history</h2><p class="sec-note">Every individual score since 2021. Pick an event.</p><div class="pills eh-pills" role="group" aria-label="Event">'
+    +L.map(function(e){return '<button class="pill-btn" data-act="hist-ev" data-v="'+esc(e.key)+'" aria-pressed="'+(e.key===cur.key)+'">'+esc(e.name)+'</button>';}).join('')+'</div>';
+  return h+histPanel(s,ev)+'</section>';}
 function histPanel(s,ev){
   if(isTeamEv(ev)||isNS(ev))return '';
   if(!histComparable(ev))return '<div class="hist-panel"><div class="sec-head"><h3>All-time</h3></div><p class="sec-note">Minigolf courses change every year, so scores aren’t compared across years.</p></div>';
@@ -1489,6 +1505,7 @@ function renderArchive(s){
   });
   order.forEach(function(k){var e=E[k];if(!e.holder&&e.best==null)return;h+=row(esc(e.name),e.holder,e.best,e.by,e.yr,e.nw);});
   h+='</tbody></table></div></section>';
+  h+=renderEventHistory(s);
 
   h+='<section><h2>Roll of honour</h2>';
   if(!ys.length)h+='<p class="empty">No years recorded yet.</p>';
@@ -1642,6 +1659,8 @@ APP.addEventListener('click',function(ev){
     case 'dir':d=edit();evById(d,ui.ev).low=(v==='low');break;
     case 'chal-res':d=edit();if(!d.chal)d.chal={games:{},res:{}};if(!d.chal.res)d.chal.res={};var cv=v.split('#');d.chal.res[cv[0]]=(d.chal.res[cv[0]]===cv[1])?null:cv[1];if(!d.chal.res[cv[0]])delete d.chal.res[cv[0]];break;
     case 'tp-pos':d=edit();var tq=v.split('|'),tpe=evById(d,tq[0]);if(tpe){tpe.tpos=tpe.tpos||{};if(+tpe.tpos[tq[1]]===+tq[2])delete tpe.tpos[tq[1]];else tpe.tpos[tq[1]]=+tq[2];}break;
+    case 'hist-ev':ui.histEv=v;break;
+    case 'ev-hist':ui.histEv=v;ui.tab='archive';ui.year=null;ui.ev=null;ui.scrollTo='event-history';ss.set('cc-tab','archive');ss.del('cc-ev');ss.del('cc-year');break;
     case 'ns-done':d=edit();var nse=evById(d,v);nse.done=!nse.done;break;
     case 'mres':d=edit();var pv=v.split(':'),mm=evById(d,ui.ev).matches[+pv[0]];mm.res=(mm.res===pv[1])?null:pv[1];break;
     case 'rebuild':ui.confirm='rebuild';break;
