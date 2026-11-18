@@ -49,6 +49,30 @@ button.cg-side.won{border-color:var(--good);background:rgba(46,125,80,.10)}
 .tp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px}
 .tp-pos button{min-width:46px}
 .winbanner{display:block;width:100%;max-width:480px;height:auto;margin:14px auto 0;border-radius:16px;box-shadow:0 6px 24px rgba(22,33,58,.25)}
+.hist-note{display:block;font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.35}
+.hn-rec{color:var(--gold)}.hn-pb{color:var(--good)}
+.hist-panel{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.hist-panel h3{margin:0;font-family:var(--f-display);font-weight:800;font-size:20px;text-transform:uppercase}
+.hist-list{list-style:none;margin:6px 0 0;padding:0}
+.hist-list li{display:grid;grid-template-columns:34px 1fr auto 52px;align-items:center;gap:8px;padding:7px 4px;border-top:1px solid var(--line)}
+.hist-list li.now{background:rgba(181,139,46,.10);border-radius:6px}
+.hl-rk{color:var(--muted);font-weight:700}.hl-yr{color:var(--muted);font-size:13px;white-space:nowrap}
+.hl-new{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-left:4px}
+.hl-sc{text-align:right;font-family:var(--f-display);font-weight:800;font-size:20px}
+.hist-panel .sec-note{margin:8px 0 0;font-size:12px}
+.sg{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.sg h3{margin:0;font-family:var(--f-display);font-weight:800;font-size:20px;text-transform:uppercase}
+.sg-row{display:grid;grid-template-columns:1fr auto 92px;align-items:center;gap:10px;padding:8px 0 8px 10px;border-top:1px solid var(--line);border-left:4px solid var(--line);margin-top:2px}
+.sg-row.win{border-left-color:var(--gold)}.sg-row.pod{border-left-color:#9AA3AE}.sg-row.mid{border-left-color:var(--good)}.sg-row.bot{border-left-color:var(--danger)}
+.sg-l{font-weight:600;font-size:14px}.sg-v{font-family:var(--f-display);font-weight:800;font-size:20px}.sg-p{text-align:right;color:var(--muted);font-size:13px}
+.sg .sec-note{margin:8px 0 0;font-size:12px}
+.dist{width:100%;height:auto;display:block;margin-top:6px}
+.d-axis{stroke:var(--line);stroke-width:1}.d-yr{font:700 12px var(--f-body,inherit);fill:var(--muted)}
+.d-dot{fill:var(--ink);fill-opacity:.32}.d-me{fill:var(--gold);stroke:var(--surface);stroke-width:1.5}
+.d-mel{font:800 11px var(--f-body,inherit);fill:var(--gold)}.d-med{stroke:var(--ink);stroke-width:2;stroke-opacity:.55}
+.d-rec{stroke:var(--gold);stroke-dasharray:3 3;stroke-width:1.2}.d-rect{font:700 10px var(--f-body,inherit);fill:var(--gold)}
+.d-ax{font:600 10.5px var(--f-body,inherit);fill:var(--muted)}
+.d-ctl{display:flex;align-items:center;gap:8px;margin:6px 0 2px}.d-ctl .lbl{margin:0}.d-ctl select{max-width:220px}
 </style>
 <style id="app-style">
 /* Layout: stadium scoreboard — condensed display numerals, team-colour stripes, standings first, events second, archive as a roll of honour */
@@ -1314,7 +1338,7 @@ function renderEvent(s,c){
     return h+'</tbody></table></div></section>';
   }
   h+='<span class="pill">'+(ev.low?'Lowest score wins':'Highest score wins')+'</span></div>';
-  return h+resultsTable(s,r)+'</section>';
+  return h+resultsTable(s,r,ev)+histPanel(s,ev)+'</section>';
 }
 function renderTP(s,c,ev){
   var ed=ui.unlocked&&!s.final,T=tpTeams(s),pos=ev.tpos||{},r=c.R[ev.id]||{},done=hasResults(ev);
@@ -1348,14 +1372,77 @@ function renderNS(s,ev){
   }
   return h+'</div></section>';
 }
-function resultsTable(s,r){
+
+/* ---------- All-time comparison for an event ----------
+   Every individual score ever at this event (matched by name), from the archive plus this year.
+   Minigolf courses change each year, so minigolf is not compared across years. */
+function histComparable(ev){return !isTeamEv(ev)&&!isNS(ev)&&ekey(ev.name)!=='minigolf';}
+function evHistory(s,ev){var k=ekey(ev.name),out=[];
+  allYears(s).forEach(function(y){y.st.events.forEach(function(e){if(ekey(e.name)!==k||isTeamEv(e)||isNS(e))return;
+    y.st.players.forEach(function(p){var v=e.scores&&e.scores[p.id];if(isNum(v))out.push({name:p.name,year:String(y.a.year),score:+v,now:String(y.a.year)===String(s.year)});});});});
+  return out;}
+function histNote(all,ev,s,name,score){
+  if(all.length<5)return '';var low=!!ev.low,b=function(a,c){return low?a<c:a>c;};
+  var rank=1+all.filter(function(x){return b(x.score,score);}).length,top=Math.max(1,Math.ceil(rank/all.length*100));
+  var prior=all.filter(function(x){return !x.now;}),others=all.filter(function(x){return !(x.now&&nkey(x.name)===nkey(name));}),best=null;others.forEach(function(x){if(!best||b(x.score,best.score))best=x;});
+  var mine=prior.filter(function(x){return nkey(x.name)===nkey(name);}),pb=mine.length&&mine.every(function(x){return b(score,x.score);});
+  var bits=['Top '+top+'% all-time'];
+  if(best){if(b(score,best.score))bits.push('<b class="hn-rec">New record</b>');else if(score===best.score)bits.push('<b class="hn-rec">Equals the record</b>');else if(top<=10)bits.push(fmt(Math.abs(best.score-score))+' off '+esc(best.name.split(' ')[0])+'\u2019s record');}
+  if(pb)bits.push('<b class="hn-pb">PB</b>');
+  return '<small class="hist-note">'+bits.join(' · ')+'</small>';}
+/* Score guide: average winning / 3rd / middle / 3rd-from-last score in past years at this event,
+   with what that finish is worth in this year's field. Built from finished years only. */
+function scoreGuide(s,ev){
+  var k=ekey(ev.name),low=!!ev.low,W=[],P=[],M=[],B=[];
+  allYears(s).forEach(function(y){if(y.live||(!s.final&&String(y.a.year)===String(s.year)))return;y.st.events.forEach(function(e){if(ekey(e.name)!==k||isTeamEv(e)||isNS(e))return;
+    var v=y.st.players.map(function(p){return e.scores&&e.scores[p.id];}).filter(isNum).map(Number).sort(function(a,b){return low?a-b:b-a;});
+    if(v.length<6)return;W.push(v[0]);P.push(v[2]);M.push(v[Math.floor(v.length/2)]);B.push(v[v.length-3]);});});
+  if(W.length<2)return '';
+  var av=function(a){return Math.round(a.reduce(function(x,y){return x+y;},0)/a.length);},N=s.players.length,op=low?' or less':'+',un=low?'over':'under';
+  var rows=[['win','Usually wins',av(W)+op,N+' pts'],['pod','Usually a podium',av(P)+op,(N-2)+'+ pts'],['mid','Top half',av(M)+op,Math.ceil(N/2)+'+ pts'],['bot','Bottom three',un+' '+av(B),'3 pts or fewer']];
+  return '<div class="sg"><div class="sec-head"><h3>What’s a good score?</h3><span class="lbl">From '+W.length+' past years</span></div>'
+    +rows.map(function(r){return '<div class="sg-row '+r[0]+'"><span class="sg-l">'+r[1]+'</span><b class="sg-v num">'+r[2]+'</b><span class="sg-p">'+r[3]+'</span></div>';}).join('')
+    +'<p class="sec-note">Typical score for 1st, 3rd, the middle of the table and 3rd from bottom in past years. Points are for a field of '+N+'.</p></div>';}
+/* Distribution: every score at this event, one row per year, with an optional highlighted player. */
+function histDist(s,ev,all){
+  var low=!!ev.low,yrs={};all.forEach(function(x){(yrs[x.year]=yrs[x.year]||[]).push(x);});
+  var Y=Object.keys(yrs).sort(function(a,b){return b-a;});if(Y.length<2)return '';
+  var mn=Math.min.apply(null,all.map(function(x){return x.score;})),mx=Math.max.apply(null,all.map(function(x){return x.score;})),pad=(mx-mn)*0.06||1;mn-=pad;mx+=pad;
+  var W=340,L=44,R=10,RH=34,T=22,H=T+Y.length*RH+26,X=function(v){var f=(v-mn)/(mx-mn);if(low)f=1-f;return L+f*(W-L-R);};
+  var hl=ui.histHl||'',hk=nkey(hl),best=all.slice().sort(function(a,b){return low?a.score-b.score:b.score-a.score;})[0];
+  var g='<svg class="dist" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Every '+esc(ev.name)+' score by year">';
+  g+='<line x1="'+X(best.score)+'" x2="'+X(best.score)+'" y1="'+(T-6)+'" y2="'+(T+Y.length*RH)+'" class="d-rec"/><text x="'+X(best.score)+'" y="'+(T-9)+'" class="d-rect" text-anchor="end">Record '+fmt(best.score)+'</text>';
+  Y.forEach(function(yr,i){var cy=T+i*RH+RH/2,pts=yrs[yr].slice().sort(function(a,b){return a.score-b.score;}),seen={};
+    var med=pts[Math.floor(pts.length/2)].score;
+    g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+cy+'" y2="'+cy+'" class="d-axis"/><text x="0" y="'+(cy+4)+'" class="d-yr">'+esc(yr)+'</text>';
+    g+='<line x1="'+X(med)+'" x2="'+X(med)+'" y1="'+(cy-9)+'" y2="'+(cy+9)+'" class="d-med"/>';
+    pts.forEach(function(x){var n=seen[x.score]=(seen[x.score]||0)+1,dy=(n%2?1:-1)*Math.floor(n/2)*5;var me=hk&&nkey(x.name)===hk;
+      g+='<circle cx="'+X(x.score).toFixed(1)+'" cy="'+(cy+dy)+'" r="'+(me?6.5:4)+'" class="'+(me?'d-me':'d-dot')+'"><title>'+esc(x.name)+' '+esc(x.year)+': '+fmt(x.score)+'</title></circle>';
+      if(me)g+='<text x="'+X(x.score).toFixed(1)+'" y="'+(cy-10)+'" class="d-mel" text-anchor="middle">'+fmt(x.score)+'</text>';});});
+  var by=T+Y.length*RH+16;
+  g+='<text x="'+L+'" y="'+by+'" class="d-ax">'+fmt(low?Math.round(mx):Math.round(mn))+'</text><text x="'+(W-R)+'" y="'+by+'" class="d-ax" text-anchor="end">'+fmt(low?Math.round(mn):Math.round(mx))+'</text><text x="'+((L+W-R)/2)+'" y="'+by+'" class="d-ax" text-anchor="middle">Better →</text></svg>';
+  var names={};all.forEach(function(x){names[x.name]=1;});
+  var sel='<label class="lbl" for="hist-hl">Highlight</label><select id="hist-hl" data-ui="histHl"><option value="">Nobody</option>'+Object.keys(names).sort().map(function(n){return '<option'+(n===hl?' selected':'')+'>'+esc(n)+'</option>';}).join('')+'</select>';
+  return '<div class="hist-panel"><div class="sec-head"><h3>Every score since '+esc(Y[Y.length-1])+'</h3></div><div class="d-ctl">'+sel+'</div>'+g
+    +'<p class="sec-note">One dot per score; the small bar is each year’s middle score.'+(hl?' '+esc(hl.split(' ')[0])+'’s scores in gold.':' Pick a player to highlight their scores.')+'</p></div>';}
+function histPanel(s,ev){
+  if(isTeamEv(ev)||isNS(ev))return '';
+  if(!histComparable(ev))return '<div class="hist-panel"><div class="sec-head"><h3>All-time</h3></div><p class="sec-note">Minigolf courses change every year, so scores aren’t compared across years.</p></div>';
+  var all=evHistory(s,ev);if(all.length<5)return scoreGuide(s,ev);var low=!!ev.low;
+  all.sort(function(a,c){return low?a.score-c.score:c.score-a.score;});
+  var rr=ranked(all,function(x){return x.score;}),yrs={};all.forEach(function(x){yrs[x.year]=1;});
+  var h=scoreGuide(s,ev)+histDist(s,ev,all)+'<div class="hist-panel"><div class="sec-head"><h3>All-time top 10</h3><span class="lbl">'+all.length+' scores · '+Object.keys(yrs).length+' years</span></div><ol class="hist-list">';
+  rr.slice(0,10).forEach(function(x){var it=x.it;h+='<li class="'+(it.now?'now':'')+'"><span class="hl-rk num">'+rankLabel(x.rank,rr)+'</span><span class="hl-nm">'+pLink(it.name)+'</span><span class="hl-yr">'+esc(it.year)+(it.now?' <span class="hl-new">This year</span>':'')+'</span><span class="hl-sc num">'+fmt(it.score)+'</span></li>';});
+  return h+'</ol><p class="sec-note">'+(low?'Lowest':'Highest')+' scores at '+esc(ev.name)+' since 2021. Top % = where a score ranks among every score ever posted.</p></div>';}
+function resultsTable(s,r,ev){
   var placed=s.players.filter(function(p){return r[p.id];}).sort(function(a,b){return r[a.id].place-r[b.id].place||a.name.localeCompare(b.name);});
   if(!placed.length)return '<p class="empty">No results yet. Check back once it’s been played.</p>';
   var counts={};placed.forEach(function(p){counts[r[p.id].place]=(counts[r[p.id].place]||0)+1;});
+  var HA=ev&&histComparable(ev)?evHistory(s,ev):[];
   var h='<div class="tbl-wrap"><table><thead><tr><th>Place</th><th>Player</th><th class="r">Score</th><th class="r">Pts</th></tr></thead><tbody>';
   placed.forEach(function(p){var x=r[p.id],pl=x.place,t=teamOf(s,p.team)||NOTEAM;
     var md=pl<=3?'<span class="medal '+(pl===1?'g':pl===2?'s':'b')+'">'+pl+'</span>':'<span class="num">'+pl+'</span>';
-    h+='<tr><td class="rkc">'+(counts[pl]>1?'<span class="dash">=</span>':'')+md+'</td><td><div class="pl-name">'+pLink(p.name)+'</div>'+teamChip(t)+'</td><td class="r num">'+fmt(x.score)+'</td><td class="r bigpts num">'+fmt(x.pts)+'</td></tr>';});
+    h+='<tr><td class="rkc">'+(counts[pl]>1?'<span class="dash">=</span>':'')+md+'</td><td><div class="pl-name">'+pLink(p.name)+'</div>'+teamChip(t)+(HA.length&&isNum(x.score)?histNote(HA,ev,s,p.name,x.score):'')+'</td><td class="r num">'+fmt(x.score)+'</td><td class="r bigpts num">'+fmt(x.pts)+'</td></tr>';});
   var missing=s.players.length-placed.length;
   return h+'</tbody></table></div>'+(missing?'<p class="sec-note" style="margin-top:8px">'+missing+' without a score get 0 points.</p>':'');
 }
@@ -1617,6 +1704,7 @@ APP.addEventListener('input',function(ev){
 APP.addEventListener('change',function(ev){
   var el=ev.target,k=el.getAttribute('data-ch');
   if(el.hasAttribute('data-in'))return render();
+  if(el.hasAttribute('data-ui')){ui[el.getAttribute('data-ui')]=el.value;return render();}
   if(!k)return;
   var d=edit(),v=el.getAttribute('data-v'),val=el.value;
   if(k==='team-color')teamOf(d,v).color=val;
