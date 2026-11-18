@@ -1626,8 +1626,36 @@ function renderSetup(s){
     +'<label class="lbl" for="cdate" style="margin-top:10px;display:block">Cup day</label><input type="date" id="cdate" value="'+esc(cupDate(s)||'')+'" data-ch="date">'
     +'<label class="lbl" for="cref" style="margin-top:10px;display:block">Cup referee</label><input type="text" id="cref" value="'+esc(refName(s))+'" data-ch="referee" placeholder="Leave blank to hide">'
     +'<p class="hint">Scorekeepers sign in with their own email and password. To add one, create a user in Firebase (Authentication) and add their email to the database rules.</p></div></section>';
+  h+='<section><h2>Export</h2><div class="card"><p class="hint" style="margin-top:0">Download '+esc(s.year)+'\u2019s results as a spreadsheet (individuals, teams, every result and a scores grid), or a full backup of everything in the app.</p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn small" data-act="export-xlsx">Download '+esc(s.year)+' spreadsheet</button><button class="btn small ghost" data-act="export-json">Full backup (.json)</button></div></div></section>';
   return h+'</div>';
 }
+
+/* ---------- Export ----------
+   Spreadsheet of the current year (built in the browser with SheetJS, loaded only when needed) and a full JSON backup. */
+var XLSX_URL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+function loadXlsx(cb){if(window.XLSX)return cb();var sc=document.createElement('script');sc.src=XLSX_URL;sc.onload=function(){cb();};sc.onerror=function(){toast('Couldn’t load the spreadsheet tool. Check your connection and try again.');};document.head.appendChild(sc);}
+function xPlace(r,arr){var l=rankLabel(r,arr);return l.charAt(0)==='='?l:r;}
+function exportSheets(s){
+  var c=compute(s),ps=sortPlayers(s,c),rr=ranked(ps,function(p){return c.P[p.id].pts;}),tn=function(id){var t=teamOf(s,id);return t?t.name:'';};
+  var mem=function(t){return s.players.filter(function(p){return p.team===t.id;}).map(function(p){return p.name;}).join(', ');};
+  var ind=[['Place','Player','Team','CC points','Events played','Event wins']];
+  rr.forEach(function(x){var p=x.it,q=c.P[p.id];ind.push([xPlace(x.rank,rr),p.name,tn(p.team),q.pts,q.played,q.won]);});
+  var ts=sortTeams(s,c),tr=ranked(ts,function(t){return c.T[t.id].pts;});
+  var th=['Place','Team','Players'].concat(s.events.map(function(e){return e.name;}),['Total']),teams=[th];
+  tr.forEach(function(x){var t=x.it;teams.push([xPlace(x.rank,tr),t.name,mem(t)].concat(s.events.map(function(e){var v=c.T[t.id].by[e.id];return v==null?'':v;}),[c.T[t.id].pts]));});
+  var res=[['Event','Type','Player','Team','Score','Place','CC points']];
+  s.events.forEach(function(e){var r=c.R[e.id]||{};
+    if(isNS(e)){res.push([e.name,fmtLabel(e),'','','','',e.done?'Completed'+(e.note?' – winner: '+e.note:''):'Not played']);return;}
+    if(isTP(e)){var tp=tpTeamPts(e,s);tpRows(e,s).forEach(function(x){res.push([e.name,fmtLabel(e),'(team result)',tn(x.id),'',x.rank,tp[x.id]||0]);});return;}
+    s.players.filter(function(p){return r[p.id];}).sort(function(a,b){return r[a.id].place-r[b.id].place;}).forEach(function(p){var x=r[p.id];res.push([e.name,fmtLabel(e),p.name,tn(p.team),x.score==null?'':x.score,x.place,x.pts]);});});
+  var sc=s.events.filter(function(e){return !isTeamEv(e)&&!isNS(e);}),grid=[['Player','Team'].concat([].concat.apply([],sc.map(function(e){return [e.name+' score',e.name+' pts'];})),['CC points total'])];
+  ps.forEach(function(p){var row=[p.name,tn(p.team)];sc.forEach(function(e){var x=(c.R[e.id]||{})[p.id];row.push(x&&x.score!=null?x.score:'',x?x.pts:'');});row.push(c.P[p.id].pts);grid.push(row);});
+  return [['Individuals',ind],['Teams',teams],['Results',res],['Scores grid',grid]];
+}
+function exportXlsx(s){loadXlsx(function(){try{var wb=XLSX.utils.book_new();
+  exportSheets(s).forEach(function(sh){var ws=XLSX.utils.aoa_to_sheet(sh[1]);ws['!cols']=sh[1][0].map(function(_,i){var w=8;sh[1].forEach(function(r){w=Math.max(w,String(r[i]==null?'':r[i]).length+2);});return {wch:Math.min(w,40)};});XLSX.utils.book_append_sheet(wb,ws,sh[0]);});
+  XLSX.writeFile(wb,'cunt-cup-'+String(s.year).replace(/[^0-9a-z]/gi,'')+'.xlsx');}catch(e){toast('Export failed. Try again.');}});}
+function exportJson(s){try{var b=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='cunt-cup-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},500);}catch(e){toast('Download failed. Try again.');}}
 
 /* ---------- Actions ---------- */
 function toast(msg){ui.toast=msg;render();clearTimeout(toast.t);toast.t=setTimeout(function(){ui.toast=null;render();},3200);}
@@ -1661,6 +1689,8 @@ APP.addEventListener('click',function(ev){
     case 'tp-pos':d=edit();var tq=v.split('|'),tpe=evById(d,tq[0]);if(tpe){tpe.tpos=tpe.tpos||{};if(+tpe.tpos[tq[1]]===+tq[2])delete tpe.tpos[tq[1]];else tpe.tpos[tq[1]]=+tq[2];}break;
     case 'hist-ev':ui.histEv=v;break;
     case 'ev-hist':ui.histEv=v;ui.tab='archive';ui.year=null;ui.ev=null;ui.scrollTo='event-history';ss.set('cc-tab','archive');ss.del('cc-ev');ss.del('cc-year');break;
+    case 'export-xlsx':exportXlsx(draft||state);return;
+    case 'export-json':exportJson(draft||state);return;
     case 'ns-done':d=edit();var nse=evById(d,v);nse.done=!nse.done;break;
     case 'mres':d=edit();var pv=v.split(':'),mm=evById(d,ui.ev).matches[+pv[0]];mm.res=(mm.res===pv[1])?null:pv[1];break;
     case 'rebuild':ui.confirm='rebuild';break;
